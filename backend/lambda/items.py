@@ -185,7 +185,7 @@ def handle_create_item(body_data: Dict[str, Any], event: Dict[str, Any], table) 
     if item_type not in ['lost', 'found']:
         return build_cors_response(400, {'error': "Invalid type. Must be 'lost' or 'found'"})
 
-    item_id = str(uuid.uuid4())
+    item_id = str(body_data.get('id') or uuid.uuid4())
     now_dt = datetime.now(timezone.utc)
     now_iso = now_dt.isoformat()
 

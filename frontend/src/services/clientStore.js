@@ -3,140 +3,8 @@
  * Powers full functionality on GitHub Pages, offline environments, and static hosts.
  */
 
-const SEED_ITEMS = [
-  {
-    id: "item-seed-1",
-    title: "MacBook Air 13-inch (Space Gray)",
-    type: "lost",
-    category: "Electronics",
-    location: "Science Library 3rd Floor Stacks",
-    dateTime: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-    description: "Left my laptop in a study carrel. Has a GitHub and NASA sticker on the lid. Very important for my senior thesis!",
-    photoUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
-    ai_tags: ["Laptop", "Computer", "Electronics", "Keyboard", "Space Gray", "Screen"],
-    detected_labels: [
-      { name: "Laptop", confidence: 98.6 },
-      { name: "Computer", confidence: 97.2 },
-      { name: "Electronics", confidence: 95.8 },
-      { name: "Keyboard", confidence: 91.4 }
-    ],
-    status: "open",
-    contactInfo: "alex.student@campus.edu",
-    userId: "usr-alex-001",
-    userEmail: "alex.student@campus.edu",
-    createdAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString()
-  },
-  {
-    id: "item-seed-2",
-    title: "Apple Laptop with Tech Stickers",
-    type: "found",
-    category: "Electronics",
-    location: "Main Campus Library Circulation Desk",
-    dateTime: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    description: "Found a dark gray laptop on a desk in the upper study level. Handed over to library staff at desk 2.",
-    photoUrl: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&auto=format&fit=crop&q=80",
-    ai_tags: ["Laptop", "Computer", "Electronics", "Space Gray", "Personal Computer"],
-    detected_labels: [
-      { name: "Laptop", confidence: 99.1 },
-      { name: "Computer", confidence: 98.0 },
-      { name: "Electronics", confidence: 96.5 }
-    ],
-    status: "open",
-    contactInfo: "library-lostfound@campus.edu",
-    userId: "usr-staff-002",
-    userEmail: "library-staff@campus.edu",
-    createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString()
-  },
-  {
-    id: "item-seed-3",
-    title: "Navy Blue Fjällräven Kånken Backpack",
-    type: "lost",
-    category: "Bags & Backpacks",
-    location: "Student Union Dining Commons",
-    dateTime: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-    description: "Left on a chair near the pizza counter during lunchtime. Has my calculus textbook and student ID card inside.",
-    photoUrl: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80",
-    ai_tags: ["Backpack", "Bag", "Blue", "Luggage", "Canvas", "Strap"],
-    detected_labels: [
-      { name: "Backpack", confidence: 99.4 },
-      { name: "Bag", confidence: 98.7 },
-      { name: "Blue", confidence: 92.1 }
-    ],
-    status: "open",
-    contactInfo: "sarah.chen@campus.edu",
-    userId: "usr-sarah-003",
-    userEmail: "sarah.chen@campus.edu",
-    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-  },
-  {
-    id: "item-seed-4",
-    title: "Blue Canvas Daypack Found in Dining Hall",
-    type: "found",
-    category: "Bags & Backpacks",
-    location: "Student Center Information Desk",
-    dateTime: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
-    description: "Dark blue backpack found near food court tables. Safe at Campus Security lost & found bin #4.",
-    photoUrl: "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=600&auto=format&fit=crop&q=80",
-    ai_tags: ["Backpack", "Bag", "Blue", "Canvas", "Pocket"],
-    detected_labels: [
-      { name: "Backpack", confidence: 97.9 },
-      { name: "Bag", confidence: 96.4 },
-      { name: "Blue", confidence: 90.5 }
-    ],
-    status: "open",
-    contactInfo: "student-center@campus.edu",
-    userId: "usr-staff-004",
-    userEmail: "sc-info@campus.edu",
-    createdAt: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 18 * 3600 * 1000).toISOString()
-  },
-  {
-    id: "item-seed-5",
-    title: "Subaru Car Key with Red Lanyard & Gym Tag",
-    type: "found",
-    category: "Keys",
-    location: "Athletic Center / Rec Gym Locker Room",
-    dateTime: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
-    description: "Set of keys with black key fob and crimson woven lanyard found on bench in men's locker room.",
-    photoUrl: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=600&auto=format&fit=crop&q=80",
-    ai_tags: ["Keys", "Keyring", "Metal", "Car Key", "Accessory", "Lanyard"],
-    detected_labels: [
-      { name: "Keys", confidence: 99.2 },
-      { name: "Keyring", confidence: 96.0 },
-      { name: "Car Key", confidence: 94.3 }
-    ],
-    status: "open",
-    contactInfo: "rec-desk@campus.edu",
-    userId: "usr-staff-005",
-    userEmail: "rec-desk@campus.edu",
-    createdAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString()
-  },
-  {
-    id: "item-seed-6",
-    title: "Campus Student ID Card & Metro Pass",
-    type: "found",
-    category: "IDs & Cards",
-    location: "Engineering Hall East Entrance",
-    dateTime: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
-    description: "Student ID in transparent plastic sleeve found on sidewalk near bicycle racks.",
-    photoUrl: "https://images.unsplash.com/photo-1589758438368-0ad531db3366?w=600&auto=format&fit=crop&q=80",
-    ai_tags: ["Card", "Identity Card", "Plastic", "Document", "Access Badge"],
-    detected_labels: [
-      { name: "Card", confidence: 98.4 },
-      { name: "Identity Card", confidence: 96.1 }
-    ],
-    status: "claimed",
-    contactInfo: "eng-office@campus.edu",
-    userId: "usr-staff-006",
-    userEmail: "eng-office@campus.edu",
-    createdAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 6 * 3600 * 1000).toISOString()
-  }
-];
+const SEED_ITEMS = [];
+
 
 const SEED_ALERTS = [
   {
@@ -169,7 +37,7 @@ const SEED_ALERTS = [
   }
 ];
 
-const STORAGE_KEY = 'campusfind_client_db_v2';
+const STORAGE_KEY = 'campusfind_client_db_v5';
 
 function getLocalData() {
   try {
@@ -405,5 +273,25 @@ export const clientStore = {
       message: 'Emergency alert successfully broadcasted across campus channels!',
       alert: newAlert
     };
+  },
+
+  updateItemRecord(item) {
+    if (!item || !item.id) return;
+    const db = getLocalData();
+    const idx = db.items.findIndex(i => i.id === item.id);
+    if (idx >= 0) {
+      db.items[idx] = { ...db.items[idx], ...item };
+    } else {
+      db.items.unshift(item);
+    }
+    saveLocalData(db);
+  },
+
+  clearItems() {
+    const db = getLocalData();
+    db.items = [];
+    saveLocalData(db);
+    return { success: true };
   }
 };
+

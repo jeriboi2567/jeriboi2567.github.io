@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { getCategoryFallbackImage, getImageUrl } from '../utils/imageFallbacks';
+import { getCategoryFallbackImage, getImageUrl, compressImageFile } from '../utils/imageFallbacks';
 
 const getLocalISOString = () => {
   const now = new Date();
@@ -131,26 +131,24 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
     setPhotoFile(file);
     setError('');
 
-    // 1. Instant client-side preview and immediate tag extraction (0ms latency)
+    // 1. Immediately compress image on client canvas to crisp ~25KB JPEG (never exceeds DynamoDB 400KB limit, 0ms render latency)
+    const compressed = await compressImageFile(file, 640, 0.72);
+    const dataUrl = compressed.dataUrl;
+    setPhotoDataUrl(dataUrl);
+    setPhotoPreview(dataUrl);
+
+    // 2. Instant client-side preview and immediate tag extraction (0ms latency)
     const immediateTags = extractClientTags(file.name, title, category, description);
     if (immediateTags.length > 0) {
       setAiTags(immediateTags.slice(0, 5));
       setDetectedLabels(immediateTags.slice(0, 5).map(t => ({ name: t, confidence: 95.0 })));
     }
 
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const dataUrl = uploadEvent.target?.result;
-      setPhotoDataUrl(dataUrl);
-      setPhotoPreview(dataUrl);
-    };
-    reader.readAsDataURL(file);
-
     setAnalyzingPhoto(true);
 
     try {
-      // 2. Call live Amazon Rekognition vision detection in AWS Cloud
-      const result = await api.uploadPhoto(file, title || file.name, category);
+      // 3. Call live Amazon Rekognition vision detection in AWS Cloud
+      const result = await api.uploadPhoto(file, title || file.name, category, dataUrl);
       if (result && result.photoUrl) {
         setUploadedUrl(result.photoUrl);
       }
@@ -177,7 +175,7 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
     setAnalyzingPhoto(true);
     try {
       if (photoFile) {
-        const res = await api.uploadPhoto(photoFile, title || photoFile.name, category);
+        const res = await api.uploadPhoto(photoFile, title || photoFile.name, category, photoDataUrl);
         if (res.ai_tags && res.ai_tags.length > 0) {
           setAiTags(res.ai_tags.slice(0, 5));
           setDetectedLabels(res.detected_labels?.slice(0, 5) || []);
@@ -254,8 +252,9 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
 
     const finalLocation = customLocation.trim() || location;
 
-    // Prioritize uploaded permanent URL -> Base64 exact uploaded photo -> Category fallback only if no photo was uploaded
-    const finalPhoto = uploadedUrl || photoDataUrl || (photoFile ? photoPreview : '') || getCategoryFallbackImage(category);
+    // Prioritize high-reliability compressed Data URL (or uploadedUrl / category fallback)
+    const finalPhoto = photoDataUrl || uploadedUrl || photoPreview || getCategoryFallbackImage(category);
+
 
     // Ensure AI tags are never empty
     let finalAiTags = [...aiTags];

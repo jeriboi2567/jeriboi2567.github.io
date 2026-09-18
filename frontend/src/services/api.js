@@ -41,6 +41,9 @@ async function request(endpoint, options = {}) {
 export const api = {
   // Items API
   async getItems(params = {}) {
+    let remoteItems = [];
+    let remoteSuccess = false;
+
     try {
       const query = new URLSearchParams();
       if (params.type && params.type !== 'all') query.append('type', params.type);
@@ -51,10 +54,38 @@ export const api = {
       if (params.search) query.append('search', params.search);
 
       const qs = query.toString();
-      return await request(`${PREFIX}/items${qs ? `?${qs}` : ''}`);
-    } catch {
-      return clientStore.getItems(params);
+      const res = await request(`${PREFIX}/items${qs ? `?${qs}` : ''}`);
+      if (res && Array.isArray(res.items)) {
+        remoteItems = res.items;
+        remoteSuccess = true;
+      }
+    } catch (err) {
+      console.warn('API getItems notice, falling back to local resilient store:', err.message);
     }
+
+    // Merge with client store for 0-latency instant updates and offline resiliency
+    const localRes = clientStore.getItems(params);
+    const localItems = localRes.items || [];
+
+    if (!remoteSuccess) {
+      return { items: localItems, count: localItems.length };
+    }
+
+    // Merge remote and local without duplicates (remote takes precedence, newer wins)
+    const itemMap = new Map();
+    for (const item of remoteItems) {
+      if (item && item.id) itemMap.set(item.id, item);
+    }
+    for (const item of localItems) {
+      if (item && item.id && !itemMap.has(item.id)) {
+        itemMap.set(item.id, item);
+      }
+    }
+
+    const merged = Array.from(itemMap.values());
+    merged.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    return { items: merged, count: merged.length };
   },
 
   async getItem(id) {
@@ -66,54 +97,74 @@ export const api = {
   },
 
   async createItem(itemData) {
+    // 1. Immediately save to clientStore for 0ms UI reactivity
+    const localRes = clientStore.createItem(itemData);
+    const localItem = localRes.item;
+
     try {
-      return await request(`${PREFIX}/items`, {
+      // 2. Transmit to live AWS DynamoDB backend
+      const remoteRes = await request(`${PREFIX}/items`, {
         method: 'POST',
-        body: JSON.stringify(itemData),
+        body: JSON.stringify({ ...itemData, id: localItem.id }),
       });
-    } catch {
-      return clientStore.createItem(itemData);
+      if (remoteRes && remoteRes.item) {
+        clientStore.updateItemRecord(remoteRes.item);
+        return remoteRes;
+      }
+    } catch (remoteErr) {
+      console.warn('AWS API Gateway write note (saved locally):', remoteErr.message);
     }
+
+    return localRes;
   },
 
   async updateItemStatus(id, status) {
+    clientStore.updateItemStatus(id, status);
     try {
       return await request(`${PREFIX}/items/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       });
     } catch {
-      return clientStore.updateItemStatus(id, status);
+      return clientStore.getItem(id);
     }
   },
 
   async deleteItem(id) {
+    clientStore.deleteItem(id);
     try {
       return await request(`${PREFIX}/items/${id}`, {
         method: 'DELETE',
       });
     } catch {
-      return clientStore.deleteItem(id);
+      return { message: 'Item deleted successfully', id };
     }
   },
 
   async getItemMatches(id) {
     try {
-      return await request(`${PREFIX}/items/${id}/matches`);
+      const res = await request(`${PREFIX}/items/${id}/matches`);
+      if (res && res.matches && res.matches.length > 0) {
+        return res;
+      }
     } catch {
-      return clientStore.getItemMatches(id);
+      // fallback to client matching engine
     }
+    return clientStore.getItemMatches(id);
   },
 
   // Upload photo & Rekognition Analysis
-  async uploadPhoto(file, titleHint = '', category = '') {
-    // 1. Read Base64 Data URL so photo is never lost or broken
-    const base64Data = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  async uploadPhoto(file, titleHint = '', category = '', compressedDataUrl = '') {
+    // 1. Obtain Base64 Data URL (prefer pre-compressed client canvas data URL)
+    let base64Data = compressedDataUrl;
+    if (!base64Data) {
+      base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
     const rawBase64 = String(base64Data).split(',')[1] || '';
 
     // If AWS live, generate S3 Presigned URL + synchronous Rekognition analysis
@@ -139,7 +190,7 @@ export const api = {
         }
 
         return {
-          photoUrl: presignRes.photoUrl || base64Data,
+          photoUrl: base64Data || presignRes.photoUrl,
           filename: file.name,
           ai_tags: presignRes.ai_tags || [],
           detected_labels: presignRes.detected_labels || [],
@@ -149,6 +200,7 @@ export const api = {
         console.warn('AWS Presign upload error:', awsUploadErr);
       }
     }
+
 
     // Local / Full-Stack server upload
     if (BASE_URL) {
