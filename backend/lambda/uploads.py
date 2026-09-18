@@ -104,7 +104,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Synchronously analyze image bytes via Amazon Rekognition
         if image_base64 and analyze_image_bytes:
             try:
-                raw_bytes = base64.b64decode(image_base64)
+                clean_b64 = image_base64.split(',')[1] if ',' in image_base64 else image_base64
+                raw_bytes = base64.b64decode(clean_b64)
                 analysis = analyze_image_bytes(raw_bytes, filename_hint=f"{title} {file_name}", category_hint=category)
                 ai_tags = analysis.get('ai_tags', [])
                 detected_labels = analysis.get('detected_labels', [])

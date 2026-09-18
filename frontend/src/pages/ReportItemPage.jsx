@@ -139,7 +139,7 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
     setAnalyzingPhoto(true);
 
     try {
-      // 2. Call backend Amazon Rekognition vision detection
+      // 2. Call live Amazon Rekognition vision detection in AWS Cloud
       const result = await api.uploadPhoto(file, title || file.name, category);
       if (result && result.photoUrl) {
         setUploadedUrl(result.photoUrl);
@@ -149,10 +149,12 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
       const serverLabels = result?.detected_labels || [];
       
       if (serverTags.length > 0) {
-        // Merge server Rekognition tags with client tags
-        const mergedSet = new Set([...immediateTags, ...serverTags]);
-        setAiTags(Array.from(mergedSet));
-        setDetectedLabels(serverLabels.length > 0 ? serverLabels : Array.from(mergedSet).map(t => ({ name: t, confidence: 90.0 })));
+        // Authentic Amazon Rekognition labels
+        setAiTags(serverTags);
+        setDetectedLabels(serverLabels.length > 0 ? serverLabels : serverTags.map(t => ({ name: t, confidence: 95.0 })));
+      } else if (immediateTags.length > 0) {
+        setAiTags(immediateTags);
+        setDetectedLabels(immediateTags.map(t => ({ name: t, confidence: 90.0 })));
       }
     } catch (err) {
       console.warn('Amazon Rekognition upload note:', err);

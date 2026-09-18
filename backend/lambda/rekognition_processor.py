@@ -19,7 +19,10 @@ import colorsys
 from decimal import Decimal
 from typing import Dict, List, Any, Optional, Tuple
 import boto3
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 logger = logging.getLogger("RekognitionProcessor")
 logger.setLevel(logging.INFO)
@@ -64,6 +67,9 @@ def normalize_image_and_extract_colors(image_bytes: bytes) -> Tuple[bytes, List[
     Simultaneously extracts dominant subject colors (e.g. Pink, Blue, Black).
     """
     if not image_bytes or len(image_bytes) < 16:
+        return image_bytes, []
+
+    if Image is None:
         return image_bytes, []
 
     dominant_colors = []

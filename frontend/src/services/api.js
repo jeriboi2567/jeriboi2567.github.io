@@ -6,11 +6,9 @@
 
 import { clientStore } from './clientStore';
 
-const isProductionStaticHost = typeof window !== 'undefined' && 
-  (window.location.hostname.includes('github.io') || window.location.hostname !== 'localhost');
-
-const BASE_URL = import.meta.env.VITE_API_URL || (isProductionStaticHost ? '' : 'http://localhost:8000');
-const isAws = !!import.meta.env.VITE_API_URL;
+const LIVE_AWS_API_GATEWAY = 'https://8d3aayrch4.execute-api.ap-south-1.amazonaws.com/prod';
+const BASE_URL = import.meta.env.VITE_API_URL || LIVE_AWS_API_GATEWAY;
+const isAws = BASE_URL.includes('amazonaws.com') || !!import.meta.env.VITE_API_URL;
 const PREFIX = isAws ? '' : '/api';
 
 async function request(endpoint, options = {}) {
