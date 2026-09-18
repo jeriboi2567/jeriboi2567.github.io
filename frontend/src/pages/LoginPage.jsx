@@ -22,11 +22,15 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
-  RotateCcw
+  RotateCcw,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth, DEFAULT_DEMO_USERS } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export const LoginPage = ({ onOpenArchitecture }) => {
+  const { theme, toggleTheme } = useTheme();
   const { 
     signInWithCognito, 
     signUpWithCognito, 
@@ -300,13 +304,28 @@ export const LoginPage = ({ onOpenArchitecture }) => {
             </div>
           </div>
 
-          <button
-            onClick={onOpenArchitecture}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-700 hover:border-primary/50 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium transition shadow-sm"
-          >
-            <Cloud className="w-4 h-4 text-primary-fixed" />
-            <span className="hidden sm:inline">AWS Architecture</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              className="p-2 rounded-xl border border-slate-700 hover:border-primary/50 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white transition shadow-sm"
+              aria-label="Toggle dark mode"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-300" />
+              )}
+            </button>
+
+            <button
+              onClick={onOpenArchitecture}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-700 hover:border-primary/50 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium transition shadow-sm"
+            >
+              <Cloud className="w-4 h-4 text-primary-fixed" />
+              <span className="hidden sm:inline">AWS Architecture</span>
+            </button>
+          </div>
         </div>
       </header>
 

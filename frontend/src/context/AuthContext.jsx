@@ -75,39 +75,51 @@ async function callCognito(target, payload) {
   return data;
 }
 
+// Clean up legacy localStorage keys on module execution so old sessions don't bypass login
+try {
+  localStorage.removeItem('campusfind_user');
+  localStorage.removeItem('campusfind_id_token');
+  localStorage.removeItem('campusfind_access_token');
+  localStorage.removeItem('campusfind_refresh_token');
+  localStorage.removeItem('findit_user');
+  localStorage.removeItem('findit_id_token');
+} catch (e) {
+  /* ignore */
+}
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('findit_user') || localStorage.getItem('campusfind_user');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+    const sessionSaved = sessionStorage.getItem('findit_session_user');
+    if (sessionSaved) {
+      try { return JSON.parse(sessionSaved); } catch (e) { /* ignore */ }
     }
     return null;
   });
 
-  const [idToken, setIdToken] = useState(() => localStorage.getItem('campusfind_id_token') || '');
-  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('campusfind_access_token') || '');
-  const [refreshToken, setRefreshToken] = useState(() => localStorage.getItem('campusfind_refresh_token') || '');
+  const [idToken, setIdToken] = useState(() => sessionStorage.getItem('findit_session_id_token') || '');
+  const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem('findit_session_access_token') || '');
+  const [refreshToken, setRefreshToken] = useState(() => sessionStorage.getItem('findit_session_refresh_token') || '');
   const [demoUsers, setDemoUsers] = useState(DEFAULT_DEMO_USERS);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('campusfind_user', JSON.stringify(currentUser));
+      sessionStorage.setItem('findit_session_user', JSON.stringify(currentUser));
     } else {
-      localStorage.removeItem('campusfind_user');
+      sessionStorage.removeItem('findit_session_user');
     }
   }, [currentUser]);
 
   useEffect(() => {
-    if (idToken) localStorage.setItem('campusfind_id_token', idToken);
-    else localStorage.removeItem('campusfind_id_token');
+    if (idToken) sessionStorage.setItem('findit_session_id_token', idToken);
+    else sessionStorage.removeItem('findit_session_id_token');
 
-    if (accessToken) localStorage.setItem('campusfind_access_token', accessToken);
-    else localStorage.removeItem('campusfind_access_token');
+    if (accessToken) sessionStorage.setItem('findit_session_access_token', accessToken);
+    else sessionStorage.removeItem('findit_session_access_token');
 
-    if (refreshToken) localStorage.setItem('campusfind_refresh_token', refreshToken);
-    else localStorage.removeItem('campusfind_refresh_token');
+    if (refreshToken) sessionStorage.setItem('findit_session_refresh_token', refreshToken);
+    else sessionStorage.removeItem('findit_session_refresh_token');
   }, [idToken, accessToken, refreshToken]);
 
   // Check token expiration periodically or on mount
@@ -127,7 +139,7 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(user);
     const simToken = `demo-${user.role}-${user.id}`;
     setIdToken(simToken);
-    localStorage.setItem('campusfind_id_token', simToken);
+    sessionStorage.setItem('findit_session_id_token', simToken);
   };
 
   /**
@@ -341,10 +353,16 @@ export const AuthProvider = ({ children }) => {
     setIdToken('');
     setAccessToken('');
     setRefreshToken('');
+    sessionStorage.removeItem('findit_session_id_token');
+    sessionStorage.removeItem('findit_session_access_token');
+    sessionStorage.removeItem('findit_session_refresh_token');
+    sessionStorage.removeItem('findit_session_user');
     localStorage.removeItem('campusfind_id_token');
     localStorage.removeItem('campusfind_access_token');
     localStorage.removeItem('campusfind_refresh_token');
     localStorage.removeItem('campusfind_user');
+    localStorage.removeItem('findit_user');
+    localStorage.removeItem('findit_id_token');
     setCurrentUser(null);
   };
 

@@ -17,7 +17,7 @@ async function request(endpoint, options = {}) {
   }
 
   const url = `${BASE_URL}${endpoint}`;
-  const idToken = localStorage.getItem('campusfind_id_token') || localStorage.getItem('findit_id_token');
+  const idToken = sessionStorage.getItem('findit_session_id_token') || localStorage.getItem('campusfind_id_token') || localStorage.getItem('findit_id_token');
   
   const headers = {
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
