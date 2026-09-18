@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { EmergencyBanner } from './components/EmergencyBanner';
 import { AWSArchitectureModal } from './components/AWSArchitectureModal';
@@ -63,7 +64,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       {/* Top Real-time Emergency Banner */}
       <EmergencyBanner />
 
@@ -114,23 +115,23 @@ function MainApp() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-container-lowest border-t border-outline-variant/40 py-6 text-xs text-on-surface-variant">
+      <footer className="bg-surface-container-lowest dark:bg-slate-900 border-t border-outline-variant/40 dark:border-slate-800 py-6 text-xs text-on-surface-variant dark:text-slate-400 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-headline font-bold text-on-surface">FindIt VITC</span>
-            <span className="text-outline-variant">•</span>
+            <span className="font-headline font-bold text-on-surface dark:text-white">FindIt VITC</span>
+            <span className="text-outline-variant dark:text-slate-700">•</span>
             <span>VIT Chennai Lost &amp; Found &amp; Emergency Alert System</span>
           </div>
 
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsArchitectureModalOpen(true)}
-              className="text-primary hover:text-primary-container font-semibold flex items-center gap-1 transition"
+              className="text-primary hover:text-primary-container dark:text-blue-400 dark:hover:text-blue-300 font-semibold flex items-center gap-1 transition"
             >
               <Cloud className="w-3.5 h-3.5" />
               <span>AWS Cloud Architecture</span>
             </button>
-            <span className="text-outline-variant">•</span>
+            <span className="text-outline-variant dark:text-slate-700">•</span>
             <span>S3 • Rekognition • Lambda • DynamoDB • SNS • Cognito</span>
           </div>
         </div>
@@ -157,8 +158,10 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
