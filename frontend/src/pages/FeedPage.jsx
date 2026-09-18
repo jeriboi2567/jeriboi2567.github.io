@@ -30,13 +30,28 @@ const CATEGORIES = [
 
 const LOCATIONS = [
   'All',
-  'Library',
-  'Student Center',
-  'Science Quad',
-  'Engineering Hall',
-  'Athletic Center',
-  'Dining Commons',
-  'Dorms'
+  'AB1',
+  'AB2',
+  'AB3',
+  'AB4',
+  'AB5',
+  'LIBRARY',
+  'ADMIN BLOCK',
+  'MG AUDITORIUM',
+  'NETAJI AUDITORIUM',
+  'KASTURBA AUDITORIUM',
+  'VOC AUDITORIUM',
+  'CRICKET GROUND',
+  'FOOTBALL GROUND',
+  'GAZEBO',
+  'NORTH SQUARE',
+  'LASSI HOUSE',
+  'SWIMMING POOL',
+  'VOLLEYBALL COURT',
+  'BASKETBALL COURT',
+  'GYMNASIUM',
+  'GYMKHANA',
+  'VMART'
 ];
 
 export const FeedPage = ({ onSelectItem, onSelectMatches, onNavigateReport, feedRefreshKey }) => {

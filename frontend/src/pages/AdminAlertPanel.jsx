@@ -26,13 +26,29 @@ const SEVERITY_OPTIONS = [
 ];
 
 const CAMPUS_ZONES = [
-  'Entire Campus (VIT Chennai Campus-Wide)',
-  'Academic Block 1 & AB2 Quad',
-  'Delta Block & Engineering Labs',
-  'Hostel Zone (Men\'s & Women\'s Blocks)',
-  'Gazebo, Food Mall & Student Hub',
-  'Central Library & Netaji Auditorium',
-  'Sports Complex & Outdoor Grounds'
+  'Entire Campus (Campus-Wide)',
+  'AB1',
+  'AB2',
+  'AB3',
+  'AB4',
+  'AB5',
+  'LIBRARY',
+  'ADMIN BLOCK',
+  'MG AUDITORIUM',
+  'NETAJI AUDITORIUM',
+  'KASTURBA AUDITORIUM',
+  'VOC AUDITORIUM',
+  'CRICKET GROUND',
+  'FOOTBALL GROUND',
+  'GAZEBO',
+  'NORTH SQUARE',
+  'LASSI HOUSE',
+  'SWIMMING POOL',
+  'VOLLEYBALL COURT',
+  'BASKETBALL COURT',
+  'GYMNASIUM',
+  'GYMKHANA',
+  'VMART'
 ];
 
 export const AdminAlertPanel = () => {

@@ -36,17 +36,28 @@ const CATEGORIES = [
 ];
 
 const CAMPUS_LOCATIONS = [
-  'Academic Block 1 (AB1)',
-  'Academic Block 2 (AB2)',
-  'Central Library & Digital Stacks',
-  'Delta Block & Engineering Labs',
-  'Netaji Auditorium & Law Quad',
-  'Gazebo & Food Mall',
-  'North Square & Student Hub',
-  'Men\'s Hostel (Block A-D)',
-  'Women\'s Hostel (Block A-C)',
-  'Sports Complex & Gymnasium',
-  'Campus Grounds & Main Gate'
+  'AB1',
+  'AB2',
+  'AB3',
+  'AB4',
+  'AB5',
+  'LIBRARY',
+  'ADMIN BLOCK',
+  'MG AUDITORIUM',
+  'NETAJI AUDITORIUM',
+  'KASTURBA AUDITORIUM',
+  'VOC AUDITORIUM',
+  'CRICKET GROUND',
+  'FOOTBALL GROUND',
+  'GAZEBO',
+  'NORTH SQUARE',
+  'LASSI HOUSE',
+  'SWIMMING POOL',
+  'VOLLEYBALL COURT',
+  'BASKETBALL COURT',
+  'GYMNASIUM',
+  'GYMKHANA',
+  'VMART'
 ];
 
 // Instant client-side semantic & visual tag extractor
