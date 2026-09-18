@@ -251,15 +251,31 @@ export const api = {
       }
     }
 
-    const tagArray = Array.from(tags);
-    if (tagArray.length === 0) {
-      tagArray.push(category || 'Item', 'Campus Valuables');
+    const COLORS = ['Pink', 'Blue', 'Black', 'White', 'Red', 'Green', 'Yellow', 'Purple', 'Silver', 'Gold', 'Gray', 'Brown', 'Orange'];
+    let detectedColor = null;
+    for (const c of COLORS) {
+      if (text.includes(c.toLowerCase())) {
+        detectedColor = c;
+        break;
+      }
+    }
+
+    const objectTags = Array.from(tags).filter(t => !COLORS.includes(t));
+    const finalTags = objectTags.slice(0, 4);
+    if (detectedColor) {
+      finalTags.push(detectedColor);
+    } else if (objectTags.length > 4) {
+      finalTags.push(objectTags[4]);
+    }
+
+    if (finalTags.length === 0) {
+      finalTags.push(category || 'Item');
     }
 
     return {
-      ai_tags: tagArray,
-      detected_labels: tagArray.map(t => ({ name: t, confidence: 92.5 })),
-      dominant_colors: []
+      ai_tags: finalTags.slice(0, 5),
+      detected_labels: finalTags.slice(0, 5).map(t => ({ name: t, confidence: 92.5 })),
+      dominant_colors: detectedColor ? [detectedColor] : []
     };
   },
 

@@ -77,13 +77,23 @@ const extractClientTags = (fileName = '', itemTitle = '', itemCategory = '', ite
   }
 
   const COLORS = ['pink', 'blue', 'black', 'white', 'red', 'green', 'yellow', 'purple', 'silver', 'gold', 'gray', 'grey', 'orange', 'brown'];
-  for (const c of COLORS) {
-    if (text.includes(c)) {
-      tags.add(c.charAt(0).toUpperCase() + c.slice(1).replace('Grey', 'Gray'));
+    const objectTags = Array.from(tags).filter(t => !COLORS.map(c => c.toLowerCase()).includes(t.toLowerCase()));
+    let detectedColor = null;
+    for (const c of COLORS) {
+      if (text.includes(c.toLowerCase())) {
+        detectedColor = c.charAt(0).toUpperCase() + c.slice(1).replace('Grey', 'Gray');
+        break;
+      }
     }
-  }
 
-  return Array.from(tags);
+    const finalTags = objectTags.slice(0, 4);
+    if (detectedColor && !finalTags.includes(detectedColor)) {
+      finalTags.push(detectedColor);
+    } else if (objectTags.length > 4) {
+      finalTags.push(objectTags[4]);
+    }
+
+    return finalTags.slice(0, 5);
 };
 
 export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
@@ -124,8 +134,8 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
     // 1. Instant client-side preview and immediate tag extraction (0ms latency)
     const immediateTags = extractClientTags(file.name, title, category, description);
     if (immediateTags.length > 0) {
-      setAiTags(immediateTags);
-      setDetectedLabels(immediateTags.map(t => ({ name: t, confidence: 95.0 })));
+      setAiTags(immediateTags.slice(0, 5));
+      setDetectedLabels(immediateTags.slice(0, 5).map(t => ({ name: t, confidence: 95.0 })));
     }
 
     const reader = new FileReader();
@@ -149,12 +159,12 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
       const serverLabels = result?.detected_labels || [];
       
       if (serverTags.length > 0) {
-        // Authentic Amazon Rekognition labels
-        setAiTags(serverTags);
-        setDetectedLabels(serverLabels.length > 0 ? serverLabels : serverTags.map(t => ({ name: t, confidence: 95.0 })));
+        // Authentic Amazon Rekognition labels (Top 5 tags with color)
+        setAiTags(serverTags.slice(0, 5));
+        setDetectedLabels(serverLabels.length > 0 ? serverLabels.slice(0, 5) : serverTags.slice(0, 5).map(t => ({ name: t, confidence: 95.0 })));
       } else if (immediateTags.length > 0) {
-        setAiTags(immediateTags);
-        setDetectedLabels(immediateTags.map(t => ({ name: t, confidence: 90.0 })));
+        setAiTags(immediateTags.slice(0, 5));
+        setDetectedLabels(immediateTags.slice(0, 5).map(t => ({ name: t, confidence: 90.0 })));
       }
     } catch (err) {
       console.warn('Amazon Rekognition upload note:', err);
@@ -166,27 +176,19 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
   const handleAutoExtractTags = async () => {
     setAnalyzingPhoto(true);
     try {
-      const clientTags = extractClientTags(photoFile?.name || '', title, category, description);
-      if (clientTags.length > 0) {
-        setAiTags(clientTags);
-        setDetectedLabels(clientTags.map(t => ({ name: t, confidence: 95.0 })));
-      }
-
       if (photoFile) {
         const res = await api.uploadPhoto(photoFile, title || photoFile.name, category);
         if (res.ai_tags && res.ai_tags.length > 0) {
-          const merged = new Set([...clientTags, ...res.ai_tags]);
-          setAiTags(Array.from(merged));
-          setDetectedLabels(res.detected_labels || []);
+          setAiTags(res.ai_tags.slice(0, 5));
+          setDetectedLabels(res.detected_labels?.slice(0, 5) || []);
           return;
         }
       }
       
       const tagRes = await api.analyzeRekognition(title || 'Item', category, description);
       if (tagRes.ai_tags && tagRes.ai_tags.length > 0) {
-        const merged = new Set([...clientTags, ...tagRes.ai_tags]);
-        setAiTags(Array.from(merged));
-        setDetectedLabels(tagRes.detected_labels || []);
+        setAiTags(tagRes.ai_tags.slice(0, 5));
+        setDetectedLabels(tagRes.detected_labels?.slice(0, 5) || []);
       }
     } catch (err) {
       console.warn('Auto extract error:', err);

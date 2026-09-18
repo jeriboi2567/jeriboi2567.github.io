@@ -253,33 +253,41 @@ def extract_semantic_vision_tags(text_context: str, category: str = "") -> Dict[
     ai_tags = []
     seen = set()
 
+    object_labels = []
+    color_labels = []
+
     for keywords, labels in ONTOLOGY_RULES:
         if any(kw in context_lower for kw in keywords):
             for name, conf in labels:
                 if name not in seen:
                     seen.add(name)
-                    detected_labels.append({'name': name, 'confidence': conf})
-                    ai_tags.append(name)
+                    object_labels.append({'name': name, 'confidence': conf})
 
     # Detect colors in text
     for c_kw, c_name in COLORS:
         if c_kw in context_lower and c_name not in seen:
             seen.add(c_name)
-            detected_labels.append({'name': c_name, 'confidence': 92.0})
-            ai_tags.append(c_name)
+            color_labels.append({'name': c_name, 'confidence': 92.0})
 
     # Fallback to category if empty
-    if not ai_tags and category:
+    if not object_labels and category:
         cat_clean = category.strip()
-        if cat_clean and cat_clean.lower() != 'other':
-            detected_labels.append({'name': cat_clean, 'confidence': 95.0})
-            ai_tags.append(cat_clean)
+        if cat_clean and cat_clean.lower() != 'other' and cat_clean not in seen:
+            object_labels.append({'name': cat_clean, 'confidence': 95.0})
+
+    final_labels = object_labels[:4]
+    if color_labels:
+        final_labels.append(color_labels[0])
+    elif len(object_labels) > 4:
+        final_labels.append(object_labels[4])
+
+    ai_tags = [l['name'] for l in final_labels[:5]]
 
     return {
         'ai_tags': ai_tags,
-        'detected_labels': detected_labels,
+        'detected_labels': final_labels[:5],
         'parent_categories': [],
-        'dominant_colors': []
+        'dominant_colors': [color_labels[0]['name']] if color_labels else []
     }
 
 
@@ -302,61 +310,107 @@ def analyze_image_bytes(image_bytes: bytes, filename_hint: str = "", category_hi
     parent_categories = []
     seen = set()
 
-    # Step 2: Try Amazon Rekognition DetectLabels
+    # Color keywords set
+    COLOR_NAMES = {'black', 'white', 'gray', 'grey', 'pink', 'blue', 'navy', 'navy blue', 'red', 'green', 'yellow', 'purple', 'silver', 'gold', 'brown', 'orange', 'cyan', 'magenta'}
+
+    # Step 2: Try Amazon Rekognition DetectLabels with IMAGE_PROPERTIES
     client = get_rekognition_client()
+    raw_labels = []
+    rek_colors = []
+
     if client:
         for min_conf in (45.0, 30.0):
             try:
-                response = client.detect_labels(
-                    Image={'Bytes': norm_bytes},
-                    MaxLabels=20,
-                    MinConfidence=min_conf
-                )
+                try:
+                    response = client.detect_labels(
+                        Image={'Bytes': norm_bytes},
+                        MaxLabels=15,
+                        MinConfidence=min_conf,
+                        Features=['GENERAL_LABELS', 'IMAGE_PROPERTIES']
+                    )
+                except Exception:
+                    response = client.detect_labels(
+                        Image={'Bytes': norm_bytes},
+                        MaxLabels=15,
+                        MinConfidence=min_conf
+                    )
+
                 labels = response.get('Labels', [])
+                props = response.get('ImageProperties', {})
+                fg_colors = props.get('Foreground', {}).get('DominantColors', [])
+                all_colors = props.get('DominantColors', [])
+                
+                # Extract Rekognition dominant colors
+                for c_entry in (fg_colors + all_colors):
+                    sim_col = c_entry.get('SimplifiedColor', '').capitalize()
+                    css_col = c_entry.get('CSSColor', '').capitalize()
+                    if sim_col and sim_col.lower() != 'grey':
+                        rek_colors.append(sim_col)
+                    elif css_col:
+                        rek_colors.append(css_col.replace('Grey', 'Gray'))
+
                 if labels:
                     for l in labels:
                         name = l['Name']
                         conf = round(float(l['Confidence']), 1)
-                        if name not in seen:
-                            seen.add(name)
-                            detected_labels.append({'name': name, 'confidence': conf})
-                            ai_tags.append(name)
-                        
+                        raw_labels.append({'name': name, 'confidence': conf})
                         for p in l.get('Parents', []):
-                            p_name = p['Name']
-                            if p_name not in seen:
-                                seen.add(p_name)
-                                parent_categories.append(p_name)
-                                ai_tags.append(p_name)
+                            parent_categories.append(p['Name'])
                     break
             except Exception as e:
                 logger.warning(f"Amazon Rekognition call with min_conf={min_conf} returned error: {e}")
 
-    # Step 3: Add Dominant Subject Colors to Tags
-    for col in pixel_colors:
-        if col and col not in seen:
-            seen.add(col)
-            ai_tags.append(col)
-            detected_labels.append({'name': col, 'confidence': 90.0})
-
-    # Step 4: If Rekognition returned sparse tags (<2), enrich with semantic context
-    if not ai_tags or len(ai_tags) < 2:
+    # Fallback to semantic context if Rekognition returned no labels
+    if not raw_labels:
         semantic = extract_semantic_vision_tags(filename_hint, category=category_hint)
-        for t in semantic.get('ai_tags', []):
-            if t not in seen:
-                seen.add(t)
-                ai_tags.append(t)
-        for dl in semantic.get('detected_labels', []):
-            if not any(x['name'] == dl['name'] for x in detected_labels):
-                detected_labels.append(dl)
+        raw_labels = semantic.get('detected_labels', [])
 
-    logger.info(f"Final Rekognition Tags ({len(ai_tags)}): {ai_tags}")
+    # Step 3: Determine Top Dominant Color (Prefer vibrant pixel color -> Rekognition color)
+    top_color = None
+    all_candidate_colors = pixel_colors + rek_colors
+    for col in all_candidate_colors:
+        if col and col.strip():
+            c_clean = col.strip().capitalize().replace('Grey', 'Gray')
+            if c_clean.lower() in COLOR_NAMES:
+                top_color = c_clean
+                break
+
+    # Step 4: Assemble top 4 object labels + 1 dominant color tag (Total: 5 tags maximum)
+    object_labels = []
+    seen = set()
+
+    for item in raw_labels:
+        name = item['name'] if isinstance(item, dict) else item
+        conf = item.get('confidence', 90.0) if isinstance(item, dict) else 90.0
+        name_clean = name.strip()
+        name_lower = name_clean.lower()
+
+        if name_lower in COLOR_NAMES:
+            if not top_color:
+                top_color = name_clean.capitalize().replace('Grey', 'Gray')
+            continue
+
+        if name_lower not in seen:
+            seen.add(name_lower)
+            object_labels.append({'name': name_clean, 'confidence': conf})
+
+    final_labels = object_labels[:4]
+
+    if top_color and top_color.lower() not in seen:
+        final_labels.append({'name': top_color, 'confidence': 95.0})
+    elif len(object_labels) > 4:
+        final_labels.append(object_labels[4])
+
+    ai_tags = [l['name'] for l in final_labels[:5]]
+    detected_labels = final_labels[:5]
+
+    logger.info(f"Final 5 Rekognition Tags: {ai_tags} (Color: {top_color})")
 
     return {
         'ai_tags': ai_tags,
         'detected_labels': detected_labels,
         'parent_categories': parent_categories,
-        'dominant_colors': pixel_colors
+        'dominant_colors': [top_color] if top_color else pixel_colors
     }
 
 
