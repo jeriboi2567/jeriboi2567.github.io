@@ -337,11 +337,17 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
           <button
-            onClick={() => onReportSuccess('my-reports', createdItem)}
+            onClick={() => onReportSuccess('feed', createdItem)}
             className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
           >
+            <span>View in Home Feed</span>
+          </button>
+          <button
+            onClick={() => onReportSuccess('my-reports', createdItem)}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition flex items-center justify-center gap-2"
+          >
             <Sparkles className="w-4 h-4" />
-            <span>Check AI Matches for this Report</span>
+            <span>Check AI Matches</span>
           </button>
           <button
             onClick={() => {

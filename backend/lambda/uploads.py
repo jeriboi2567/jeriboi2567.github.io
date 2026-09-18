@@ -101,15 +101,28 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         detected_labels = []
         dominant_colors = []
 
-        # Synchronously analyze image bytes via Amazon Rekognition
-        if image_base64 and analyze_image_bytes:
+        # Synchronously save image to S3 & analyze image bytes via Amazon Rekognition
+        if image_base64:
             try:
                 clean_b64 = image_base64.split(',')[1] if ',' in image_base64 else image_base64
                 raw_bytes = base64.b64decode(clean_b64)
-                analysis = analyze_image_bytes(raw_bytes, filename_hint=f"{title} {file_name}", category_hint=category)
-                ai_tags = analysis.get('ai_tags', [])
-                detected_labels = analysis.get('detected_labels', [])
-                dominant_colors = analysis.get('dominant_colors', [])
+                
+                # Directly write to S3 bucket so image is immediately available
+                try:
+                    s3.put_object(
+                        Bucket=BUCKET_NAME,
+                        Key=unique_key,
+                        Body=raw_bytes,
+                        ContentType=file_type
+                    )
+                except Exception as s3_err:
+                    logger.warning(f"Direct S3 write note: {s3_err}")
+
+                if analyze_image_bytes:
+                    analysis = analyze_image_bytes(raw_bytes, filename_hint=f"{title} {file_name}", category_hint=category)
+                    ai_tags = analysis.get('ai_tags', [])
+                    detected_labels = analysis.get('detected_labels', [])
+                    dominant_colors = analysis.get('dominant_colors', [])
             except Exception as rek_err:
                 logger.warning(f"Synchronous Rekognition error: {rek_err}")
 

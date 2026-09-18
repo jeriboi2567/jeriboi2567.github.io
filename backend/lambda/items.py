@@ -75,6 +75,28 @@ def get_user_from_event(event: Dict[str, Any]) -> Dict[str, Any]:
         'role': claims.get('custom:role', '')
     }
 
+def ensure_presigned_url(photo_url: str) -> str:
+    """Converts private S3 URLs or keys to 7-day presigned GET URLs to prevent 403 AccessDenied."""
+    if not photo_url:
+        return ""
+    if photo_url.startswith("data:image/") or photo_url.startswith("http://localhost:8000") or "unsplash.com" in photo_url:
+        return photo_url
+    if "s3" in photo_url or photo_url.startswith("items/"):
+        if "X-Amz-Signature" in photo_url:
+            return photo_url  # Already a valid presigned URL
+        bucket = os.environ.get('PHOTOS_BUCKET_NAME', 'campusfind-photos-694442891642-ap-south-1')
+        key = photo_url
+        if "amazonaws.com/" in photo_url:
+            key = photo_url.split("amazonaws.com/")[1]
+        try:
+            from botocore.config import Config
+            s3 = boto3.client('s3', region_name=AWS_REGION, config=Config(signature_version='s3v4'))
+            return s3.generate_presigned_url('get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=604800)
+        except Exception as e:
+            logger.warning(f"Error generating presigned GET URL for {key}: {e}")
+            return photo_url
+    return photo_url
+
 def handle_list_items(query_params: Dict[str, str], table) -> Dict[str, Any]:
     """Query items from DynamoDB with flexible filtering and GSI optimization."""
     item_type = query_params.get('type')
@@ -129,6 +151,10 @@ def handle_list_items(query_params: Dict[str, str], table) -> Dict[str, Any]:
                 if (search in title or search in desc or search in loc or any(search in t for t in tags)):
                     filtered.append(it)
             items = filtered
+
+        # Ensure all S3 images are signed so they render with 200 OK
+        for it in items:
+            it['photoUrl'] = ensure_presigned_url(it.get('photoUrl', ''))
 
         # Sort by createdAt descending
         items.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
