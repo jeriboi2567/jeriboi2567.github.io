@@ -41,22 +41,22 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenArchitecture }) => {
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('feed')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-              <span className="font-black text-lg tracking-tighter">CF</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-primary-container flex items-center justify-center text-white shadow-md shadow-primary/20">
+              <span className="font-headline font-black text-lg tracking-tighter">FI</span>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-black text-lg tracking-tight text-slate-900">CampusFind</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+                <span className="font-headline font-black text-lg tracking-tight text-on-surface">FindIt VITC</span>
+                <span className="text-[10px] uppercase font-label font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary-fixed text-primary">
                   AWS
                 </span>
               </div>
-              <p className="text-[10px] text-slate-500 leading-none">Lost & Found + Emergency Alerts</p>
+              <p className="text-[10px] text-outline leading-none font-body">VIT Chennai Lost & Found + Safety Grid</p>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -88,7 +88,7 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenArchitecture }) => {
           <div className="flex items-center gap-2.5">
             <button
               onClick={onOpenArchitecture}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50 hover:bg-blue-50/50 text-slate-700 hover:text-blue-700 text-xs font-medium transition shadow-xs"
+              className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50 hover:bg-blue-50/50 text-slate-700 hover:text-blue-700 text-xs font-medium transition shadow-xs"
               title="View AWS Serverless Architecture"
             >
               <Cloud className="w-3.5 h-3.5 text-blue-600" />
@@ -198,10 +198,10 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenArchitecture }) => {
               )}
             </div>
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile / Tablet Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition"
+              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>

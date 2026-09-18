@@ -73,7 +73,7 @@ export const EmergencyBanner = () => {
               <div className="mt-1 flex items-center gap-2 text-[11px] opacity-80">
                 <span>Dispatched via <strong>Amazon SNS</strong> (SMS + Email + Push)</span>
                 <span>•</span>
-                <span>From: {activeAlert.senderName || 'Campus Public Safety'}</span>
+                <span>From: {activeAlert.senderName || 'VIT Chennai Campus Security'}</span>
               </div>
             </div>
           </div>

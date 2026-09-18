@@ -77,11 +77,11 @@ async function callCognito(target, payload) {
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('campusfind_user');
+    const saved = localStorage.getItem('findit_user') || localStorage.getItem('campusfind_user');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* ignore */ }
     }
-    return DEFAULT_DEMO_USERS[0];
+    return null;
   });
 
   const [idToken, setIdToken] = useState(() => localStorage.getItem('campusfind_id_token') || '');

@@ -114,23 +114,23 @@ function MainApp() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500">
+      <footer className="bg-surface-container-lowest border-t border-outline-variant/40 py-6 text-xs text-on-surface-variant">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800">CampusFind</span>
-            <span>•</span>
-            <span>College Lost & Found & Emergency Alert System</span>
+            <span className="font-headline font-bold text-on-surface">FindIt VITC</span>
+            <span className="text-outline-variant">•</span>
+            <span>VIT Chennai Lost &amp; Found &amp; Emergency Alert System</span>
           </div>
 
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsArchitectureModalOpen(true)}
-              className="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+              className="text-primary hover:text-primary-container font-semibold flex items-center gap-1 transition"
             >
               <Cloud className="w-3.5 h-3.5" />
               <span>AWS Cloud Architecture</span>
             </button>
-            <span>•</span>
+            <span className="text-outline-variant">•</span>
             <span>S3 • Rekognition • Lambda • DynamoDB • SNS • Cognito</span>
           </div>
         </div>

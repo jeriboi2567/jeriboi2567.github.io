@@ -197,6 +197,8 @@ def handle_create_item(body_data: Dict[str, Any], event: Dict[str, Any], table) 
             dt_parsed = datetime.fromisoformat(clean_date_str)
             if dt_parsed.tzinfo is None:
                 dt_parsed = dt_parsed.replace(tzinfo=timezone.utc)
+            else:
+                dt_parsed = dt_parsed.astimezone(timezone.utc)
             if dt_parsed > now_dt + timedelta(minutes=5):
                 return build_cors_response(400, {'error': 'Incident dateTime cannot be in the future.'})
         except (ValueError, TypeError) as e:

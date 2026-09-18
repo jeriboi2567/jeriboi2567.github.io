@@ -210,7 +210,7 @@ export const AuthModal = () => {
               </>
             ) : (
               <>
-                <span>Sign In to CampusFind</span>
+                <span>Sign In to FindIt VITC</span>
                 <LogIn className="w-4 h-4" />
               </>
             )}

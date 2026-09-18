@@ -29,7 +29,43 @@ import alerts
 
 
 # =============================================================================
-# 1. Test BUG-08: Malformed JSON Returns 400 Bad Request
+# 1. Test BUG-01: Rekognition OPTIONS Preflight CORS & POST /rekognition/analyze
+# =============================================================================
+
+def test_rekognition_options_preflight_cors_returns_200_and_headers():
+    event = {
+        'httpMethod': 'OPTIONS',
+        'path': '/rekognition/analyze'
+    }
+    response = rekognition_processor.lambda_handler(event, None)
+    assert response['statusCode'] == 200
+    headers = response.get('headers', {})
+    assert headers.get('Access-Control-Allow-Origin') == '*'
+    assert 'OPTIONS' in headers.get('Access-Control-Allow-Methods', '')
+    assert 'Authorization' in headers.get('Access-Control-Allow-Headers', '')
+
+
+def test_rekognition_post_analyze_returns_cors_and_tags():
+    event = {
+        'httpMethod': 'POST',
+        'path': '/rekognition/analyze',
+        'body': json.dumps({
+            'title': 'Space Gray MacBook Pro 16 inch',
+            'category': 'Electronics',
+            'description': 'Left on 3rd floor study desk'
+        })
+    }
+    response = rekognition_processor.lambda_handler(event, None)
+    assert response['statusCode'] == 200
+    headers = response.get('headers', {})
+    assert headers.get('Access-Control-Allow-Origin') == '*'
+    body = json.loads(response['body'])
+    assert 'ai_tags' in body
+    assert any('Laptop' in t or 'Computer' in t or 'Electronics' in t for t in body['ai_tags'])
+
+
+# =============================================================================
+# 1.1 Test BUG-08: Malformed JSON Returns 400 Bad Request
 # =============================================================================
 
 def test_items_handler_malformed_json_returns_400():
@@ -632,6 +668,30 @@ def test_items_rejects_future_dateTime():
         assert res['statusCode'] == 400
         body = json.loads(res['body'])
         assert 'future' in body['error'].lower()
+
+
+def test_items_accepts_valid_local_time_submission():
+    mock_table = MagicMock()
+    # Simulate an item submitted with local timezone representation (e.g. 10 mins ago converted to ISO with local offset)
+    local_tz = timezone(timedelta(hours=5, minutes=30))  # IST
+    recent_local_time = (datetime.now(local_tz) - timedelta(minutes=10)).isoformat()
+
+    event = {
+        'httpMethod': 'POST',
+        'path': '/items',
+        'body': json.dumps({
+            'title': 'Lost Water Bottle',
+            'type': 'lost',
+            'category': 'Drinkware',
+            'location': 'Library Stacks',
+            'dateTime': recent_local_time
+        })
+    }
+    with patch.object(items, 'get_dynamodb_table', return_value=mock_table):
+        res = items.lambda_handler(event, None)
+        assert res['statusCode'] == 201
+        body = json.loads(res['body'])
+        assert body['message'] == 'Item created successfully'
 
 
 def test_items_rejects_overlength_title():

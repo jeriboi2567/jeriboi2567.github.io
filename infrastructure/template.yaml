@@ -301,6 +301,14 @@ Resources:
                 Rules:
                   - Name: prefix
                     Value: items/
+        AnalyzePhotoApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CampusFindApi
+            Path: /rekognition/analyze
+            Method: POST
+            Auth:
+              Authorizer: NONE
 
   # Emergency Alerts Broadcast Function
   AlertsFunction:

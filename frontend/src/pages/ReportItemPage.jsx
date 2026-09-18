@@ -36,15 +36,17 @@ const CATEGORIES = [
 ];
 
 const CAMPUS_LOCATIONS = [
-  'Main Library (Circulation / Stacks)',
-  'Science Library & Study Commons',
-  'Student Union & Food Court',
-  'Engineering Hall & Labs',
-  'Athletic Center / Rec Gym',
-  'Dining Commons / Cafeteria',
-  'North Campus Dormitories',
-  'South Campus Residence Halls',
-  'Campus Quad & Outdoor Grounds'
+  'Academic Block 1 (AB1)',
+  'Academic Block 2 (AB2)',
+  'Central Library & Digital Stacks',
+  'Delta Block & Engineering Labs',
+  'Netaji Auditorium & Law Quad',
+  'Gazebo & Food Mall',
+  'North Square & Student Hub',
+  'Men\'s Hostel (Block A-D)',
+  'Women\'s Hostel (Block A-C)',
+  'Sports Complex & Gymnasium',
+  'Campus Grounds & Main Gate'
 ];
 
 // Instant client-side semantic & visual tag extractor
@@ -269,13 +271,22 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
       }
     }
 
+    // Convert local dateTime selection to UTC ISO 8601 string
+    let isoDateTime = new Date().toISOString();
+    if (dateTime) {
+      const parsed = new Date(dateTime);
+      if (!isNaN(parsed.getTime())) {
+        isoDateTime = parsed.toISOString();
+      }
+    }
+
     try {
       const payload = {
         title: trimmedTitle,
         type: type,
         category: category,
         location: finalLocation,
-        dateTime: dateTime,
+        dateTime: isoDateTime,
         description: trimmedDesc,
         photoUrl: finalPhoto,
         ai_tags: finalAiTags,
@@ -298,21 +309,21 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
   if (createdItem) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center space-y-5 animate-fadeIn">
-        <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
+        <div className="w-16 h-16 rounded-3xl bg-found-emerald/10 text-found-emerald flex items-center justify-center mx-auto shadow-md">
           <CheckCircle2 className="w-9 h-9" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-slate-900">
+          <h2 className="text-2xl font-headline font-black text-on-surface">
             {isLost ? 'Lost Item Report Registered!' : 'Found Item Report Submitted!'}
           </h2>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">
+          <p className="text-sm text-outline max-w-md mx-auto font-body">
             Your report has been saved to Amazon DynamoDB and analyzed by Amazon Rekognition.
-            Our AI matching engine has already scanned opposing reports.
+            FindIt VITC AI matching engine has already scanned opposing reports.
           </p>
         </div>
 
         {/* Item preview card */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 text-left flex items-center gap-4 max-w-lg mx-auto shadow-sm">
+        <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/60 text-left flex items-center gap-4 max-w-lg mx-auto shadow-xs">
           <img
             src={getImageUrl(createdItem.photoUrl, createdItem.category)}
             alt={createdItem.title}
@@ -323,27 +334,26 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
             className="w-16 h-16 rounded-xl object-cover"
           />
           <div className="flex-1">
-            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-              isLost ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'
+            <span className={`text-[10px] font-label font-bold uppercase px-2 py-0.5 rounded text-white ${
+              isLost ? 'bg-lost-coral' : 'bg-found-emerald'
             }`}>
               {createdItem.type}
             </span>
-            <h4 className="font-bold text-sm text-slate-900 mt-1">{createdItem.title}</h4>
-            <p className="text-xs text-slate-500">{createdItem.location}</p>
+            <h4 className="font-headline font-bold text-sm text-on-surface mt-1">{createdItem.title}</h4>
+            <p className="text-xs text-outline">{createdItem.location}</p>
           </div>
         </div>
-
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
           <button
             onClick={() => onReportSuccess('feed', createdItem)}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-white font-headline font-bold text-xs shadow-lg shadow-primary/20 transition flex items-center justify-center gap-2"
           >
             <span>View in Home Feed</span>
           </button>
           <button
             onClick={() => onReportSuccess('my-reports', createdItem)}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary-fixed/40 hover:bg-primary-fixed text-primary font-headline font-bold text-xs border border-primary/20 transition flex items-center justify-center gap-2"
           >
             <Sparkles className="w-4 h-4" />
             <span>Check AI Matches</span>
@@ -356,7 +366,7 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
               setPhotoPreview('');
               setAiTags([]);
             }}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-outline-variant/60 hover:bg-surface-container text-on-surface-variant font-headline font-semibold text-xs transition"
           >
             Submit Another Report
           </button>
@@ -367,26 +377,26 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8 space-y-6">
+      <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/50 shadow-md p-6 sm:p-8 space-y-6">
         {/* Header */}
-        <div className="border-b border-slate-100 pb-5">
+        <div className="border-b border-outline-variant/30 pb-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+              <h1 className="text-xl sm:text-2xl font-headline font-black text-on-surface">
                 {isLost ? 'Report a Lost Item' : 'Report a Found Item'}
               </h1>
-              <p className="text-xs text-slate-500 mt-1">
-                Fill in the details below. Our AWS Rekognition vision model will auto-tag your photo for AI matching.
+              <p className="text-xs text-outline mt-1 font-body">
+                Fill in the details below. FindIt VITC AWS Rekognition vision model will auto-tag your photo for AI matching.
               </p>
             </div>
 
             {/* Type toggle */}
-            <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200">
+            <div className="flex items-center p-1 rounded-xl bg-surface-container border border-outline-variant/40">
               <button
                 type="button"
                 onClick={() => setType('lost')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                  isLost ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1.5 rounded-lg text-xs font-headline font-bold transition ${
+                  isLost ? 'bg-lost-coral text-white shadow-xs' : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 Lost
@@ -394,8 +404,8 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
               <button
                 type="button"
                 onClick={() => setType('found')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                  !isLost ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1.5 rounded-lg text-xs font-headline font-bold transition ${
+                  !isLost ? 'bg-found-emerald text-white shadow-xs' : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 Found
@@ -415,10 +425,10 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
           {/* Title */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+              <label className="block text-xs font-headline font-bold uppercase tracking-wider text-on-surface">
                 Item Title / Name *
               </label>
-              <span className={`text-[10px] font-medium ${title.length > 90 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+              <span className={`text-[10px] font-medium ${title.length > 90 ? 'text-amber-600 font-bold' : 'text-outline'}`}>
                 {title.length}/100
               </span>
             </div>

@@ -286,25 +286,25 @@ export const LoginPage = ({ onOpenArchitecture }) => {
       <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25">
-              <span className="font-black text-lg tracking-tight">CF</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-primary-container flex items-center justify-center text-white shadow-lg shadow-primary/25">
+              <span className="font-headline font-black text-lg tracking-tight">FI</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black text-lg tracking-tight text-white">CampusFind</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <span className="font-headline font-black text-lg tracking-tight text-white">FindIt VITC</span>
+                <span className="text-[10px] uppercase font-label font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary-fixed border border-primary/30">
                   AWS Serverless
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Campus Lost & Found + Emergency Broadcast Network</p>
+              <p className="text-[11px] text-slate-400">VIT Chennai Lost &amp; Found + Emergency Broadcast Network</p>
             </div>
           </div>
 
           <button
             onClick={onOpenArchitecture}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-700 hover:border-blue-500/50 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium transition shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-700 hover:border-primary/50 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium transition shadow-sm"
           >
-            <Cloud className="w-4 h-4 text-blue-400" />
+            <Cloud className="w-4 h-4 text-primary-fixed" />
             <span className="hidden sm:inline">AWS Architecture</span>
           </button>
         </div>
@@ -315,12 +315,12 @@ export const LoginPage = ({ onOpenArchitecture }) => {
         <div className="w-full max-w-md space-y-6">
           {/* Header Title */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary-fixed text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Amazon Cognito Secure Authentication</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {mode === 'signin' && 'Welcome to CampusFind'}
+            <h1 className="text-2xl sm:text-3xl font-headline font-black tracking-tight text-white">
+              {mode === 'signin' && 'Welcome to FindIt VITC'}
               {mode === 'signup' && 'Create Campus Account'}
               {mode === 'verify' && 'Verify Your Email'}
               {mode === 'forgot' && 'Reset Your Password'}
@@ -794,7 +794,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
       <footer className="border-t border-slate-800 bg-slate-950 py-5 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div>
-            <span className="font-bold text-slate-400">CampusFind v2.0</span> • Amazon Cognito Production Authentication
+            <span className="font-bold text-slate-400">FindIt VITC</span> • Amazon Cognito Production Authentication
           </div>
           <div className="flex items-center gap-2">
             <span>Serverless AWS Stack: Cognito • Rekognition • DynamoDB • S3 • SNS • Lambda</span>

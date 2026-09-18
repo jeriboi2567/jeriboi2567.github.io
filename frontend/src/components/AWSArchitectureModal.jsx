@@ -65,7 +65,7 @@ export const AWSArchitectureModal = ({ isOpen, onClose }) => {
               <Cloud className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">CampusFind — AWS Cloud Architecture</h2>
+              <h2 className="text-xl font-bold text-slate-900">FindIt VITC — AWS Cloud Architecture</h2>
               <p className="text-xs text-slate-500">Fully serverless cloud implementation on Amazon Web Services</p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export const AWSArchitectureModal = ({ isOpen, onClose }) => {
               <span>Full-Stack Cloud-Native Architecture</span>
             </div>
             <p>
-              CampusFind uses an event-driven serverless pipeline: uploaded photos in S3 trigger Rekognition labels;
+              FindIt VITC uses an event-driven serverless pipeline: uploaded photos in S3 trigger Rekognition labels;
               Lambda computes 4-way match scores and persists to DynamoDB; security personnel broadcast alerts to SNS topic.
             </p>
           </div>

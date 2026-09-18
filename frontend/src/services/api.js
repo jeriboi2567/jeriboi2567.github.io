@@ -17,7 +17,7 @@ async function request(endpoint, options = {}) {
   }
 
   const url = `${BASE_URL}${endpoint}`;
-  const idToken = localStorage.getItem('campusfind_id_token');
+  const idToken = localStorage.getItem('campusfind_id_token') || localStorage.getItem('findit_id_token');
   
   const headers = {
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -29,11 +29,15 @@ async function request(endpoint, options = {}) {
     const res = await fetch(url, { ...options, headers });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.detail || errorData.error || `HTTP error ${res.status}`);
+      const err = new Error(errorData.detail || errorData.error || `HTTP error ${res.status}`);
+      err.status = res.status;
+      throw err;
     }
     return await res.json();
   } catch (err) {
-    console.warn(`API network notice on [${options.method || 'GET'} ${url}], using resilient client fallback:`, err.message);
+    if (err.status !== 404) {
+      console.warn(`API network notice on [${options.method || 'GET'} ${url}], using resilient client fallback:`, err.message);
+    }
     throw err;
   }
 }
@@ -142,15 +146,27 @@ export const api = {
   },
 
   async getItemMatches(id) {
+    if (!id) {
+      return { matches: [], match_count: 0, status: 'pending_sync' };
+    }
     try {
       const res = await request(`${PREFIX}/items/${id}/matches`);
-      if (res && res.matches && res.matches.length > 0) {
+      if (res && Array.isArray(res.matches)) {
         return res;
       }
-    } catch {
-      // fallback to client matching engine
+    } catch (err) {
+      // Graceful fallback to client matching engine on 404 / network fail
+      try {
+        return clientStore.getItemMatches(id);
+      } catch {
+        return { matches: [], match_count: 0, status: 'pending_sync' };
+      }
     }
-    return clientStore.getItemMatches(id);
+    try {
+      return clientStore.getItemMatches(id);
+    } catch {
+      return { matches: [], match_count: 0, status: 'pending_sync' };
+    }
   },
 
   // Upload photo & Rekognition Analysis

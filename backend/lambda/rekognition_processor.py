@@ -459,10 +459,59 @@ def analyze_image_with_rekognition(bucket: str, key: str, max_labels: int = 20, 
         return {'ai_tags': [], 'detected_labels': [], 'parent_categories': [], 'dominant_colors': [], 'error': str(e)}
 
 
+def build_cors_response(status_code: int, body: Any) -> Dict[str, Any]:
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Amz-Date, X-Api-Key, X-Amz-Security-Token'
+        },
+        'body': json.dumps(body, default=str)
+    }
+
+
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    AWS Lambda handler for S3 ObjectCreated events.
+    AWS Lambda handler for both S3 ObjectCreated events and API Gateway REST /rekognition/analyze requests.
     """
+    http_method = event.get('httpMethod')
+
+    # Handle API Gateway CORS preflight
+    if http_method == 'OPTIONS':
+        return build_cors_response(200, {'status': 'ok'})
+
+    # Handle API Gateway POST /rekognition/analyze
+    if http_method == 'POST':
+        try:
+            raw_body = event.get('body') or '{}'
+            body_data = json.loads(raw_body)
+            if not isinstance(body_data, dict):
+                return build_cors_response(400, {'error': 'Invalid request body: expected JSON object'})
+        except (json.JSONDecodeError, TypeError):
+            return build_cors_response(400, {'error': 'Invalid JSON in request body'})
+
+        title = str(body_data.get('title', '')).strip()
+        category = str(body_data.get('category', '')).strip()
+        description = str(body_data.get('description', '')).strip()
+        image_base64 = body_data.get('imageBase64') or body_data.get('image_base64') or ''
+
+        if image_base64:
+            try:
+                import base64
+                clean_b64 = image_base64.split(',')[1] if ',' in image_base64 else image_base64
+                raw_bytes = base64.b64decode(clean_b64)
+                analysis = analyze_image_bytes(raw_bytes, filename_hint=f"{title} {category}", category_hint=category)
+                return build_cors_response(200, analysis)
+            except Exception as e:
+                logger.warning(f"Error processing imageBase64 in analyze: {e}")
+
+        # Fallback to semantic extraction
+        analysis = extract_semantic_vision_tags(f"{title} {description}", category=category)
+        return build_cors_response(200, analysis)
+
+    # Handle S3 ObjectCreated Events
     logger.info(f"Received Rekognition S3 Event: {json.dumps(event)}")
     results = []
     dynamo = get_dynamodb_resource()
@@ -502,5 +551,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     return {
         'statusCode': 200,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
         'body': json.dumps({'message': 'Rekognition complete', 'results': results}, default=str)
     }
