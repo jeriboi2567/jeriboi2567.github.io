@@ -463,10 +463,10 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs sm:text-sm outline-none bg-white transition"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs sm:text-sm outline-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition"
               >
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{cat}</option>
                 ))}
               </select>
             </div>
@@ -497,12 +497,13 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
             <select
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs sm:text-sm outline-none bg-white transition"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs sm:text-sm outline-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition"
             >
               {CAMPUS_LOCATIONS.map((loc) => (
-                <option key={loc} value={loc}>{loc}</option>
+                <option key={loc} value={loc} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{loc}</option>
               ))}
             </select>
+
             <input
               type="text"
               value={customLocation}

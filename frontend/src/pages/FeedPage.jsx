@@ -229,27 +229,28 @@ export const FeedPage = ({ onSelectItem, onSelectMatches, onNavigateReport, feed
             <select
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="text-xs bg-surface-container border border-outline-variant/60 rounded-lg px-2.5 py-1 text-on-surface font-medium outline-none"
+              className="text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-100 font-medium outline-none transition"
             >
-              <option value="All">All Locations</option>
+              <option value="All" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">All Locations</option>
               {LOCATIONS.filter(l => l !== 'All').map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
+                <option key={loc} value={loc} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{loc}</option>
               ))}
             </select>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs bg-surface-container border border-outline-variant/60 rounded-lg px-2.5 py-1 text-on-surface font-medium outline-none"
+              className="text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-100 font-medium outline-none transition"
             >
-              <option value="all">All Statuses</option>
-              <option value="open">Open Reports</option>
-              <option value="claimed">Claimed</option>
-              <option value="resolved">Resolved</option>
+              <option value="all" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">All Statuses</option>
+              <option value="open" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Open Reports</option>
+              <option value="claimed" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Claimed</option>
+              <option value="resolved" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Resolved</option>
             </select>
           </div>
         </div>
       </div>
+
 
       {/* Items Grid */}
       {loading ? (

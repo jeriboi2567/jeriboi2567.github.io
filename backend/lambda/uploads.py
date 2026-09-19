@@ -46,8 +46,9 @@ def build_cors_response(status_code: int, body: Any) -> Dict[str, Any]:
     }
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Handles POST /uploads/presign."""
+    """Handles POST /uploads/presign and POST /rekognition/analyze."""
     http_method = event.get('httpMethod', 'POST')
+    path = event.get('path', '')
     if http_method == 'OPTIONS':
         return build_cors_response(200, {'status': 'ok'})
 
@@ -60,6 +61,20 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return build_cors_response(400, {'error': 'Invalid request body: expected JSON object'})
     except (json.JSONDecodeError, TypeError):
         return build_cors_response(400, {'error': 'Invalid JSON in request body'})
+
+    # Handle direct text-based Rekognition analysis: POST /rekognition/analyze
+    if '/rekognition/analyze' in path or ('description' in body and not body.get('imageBase64') and not body.get('filename')):
+        title = body.get('title', '')
+        category = body.get('category', '')
+        description = body.get('description', '')
+        if extract_semantic_vision_tags:
+            res = extract_semantic_vision_tags(f"{title} {description}", category=category)
+            return build_cors_response(200, res)
+        return build_cors_response(200, {
+            'ai_tags': [category or 'Item'],
+            'detected_labels': [{'name': category or 'Item', 'confidence': 90.0}],
+            'dominant_colors': []
+        })
 
     try:
         file_name = body.get('filename', 'photo.jpg')

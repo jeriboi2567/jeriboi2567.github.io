@@ -26,3 +26,29 @@
 .animate-emergency {
   animation: emergency-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Explicit styling for select dropdowns & option items to guarantee high contrast across all browsers & dark mode */
+select {
+  color-scheme: light dark;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.dark select,
+.dark select option,
+[data-theme='dark'] select option,
+html.dark select option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  select option {
+    background-color: #1e293b;
+    color: #f8fafc;
+  }
+}
+
