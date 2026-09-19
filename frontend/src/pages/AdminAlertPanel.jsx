@@ -52,7 +52,7 @@ const CAMPUS_ZONES = [
 ];
 
 export const AdminAlertPanel = () => {
-  const { currentUser, isAdmin, switchUser, demoUsers } = useAuth();
+  const { currentUser, isAdmin } = useAuth();
 
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -147,10 +147,8 @@ export const AdminAlertPanel = () => {
     }
   };
 
-  // If user is not admin, show permission prompt with one-click profile switch
+  // If user is not admin, show permission prompt
   if (!isAdmin) {
-    const adminUser = demoUsers.find(u => u.role === 'admin');
-
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
         <div className="w-16 h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-md">
@@ -166,17 +164,11 @@ export const AdminAlertPanel = () => {
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm max-w-md mx-auto space-y-3">
           <p className="text-xs font-semibold text-slate-700">
-            Current Profile: <span className="text-blue-600 font-bold">{currentUser?.name}</span> ({currentUser?.role})
+            Current Profile: <span className="text-blue-600 font-bold">{currentUser?.name || currentUser?.email}</span> ({currentUser?.role || 'student'})
           </p>
-          {adminUser && (
-            <button
-              onClick={() => switchUser(adminUser)}
-              className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/20 transition flex items-center justify-center gap-2"
-            >
-              <UserCheck className="w-4 h-4" />
-              <span>Switch to Security Officer Profile ({adminUser.name})</span>
-            </button>
-          )}
+          <p className="text-xs text-slate-500">
+            If you require administrative dispatch privileges, please contact campus public safety administration.
+          </p>
         </div>
       </div>
     );

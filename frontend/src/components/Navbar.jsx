@@ -20,7 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 export const Navbar = ({ activeTab, setActiveTab, onOpenArchitecture }) => {
-  const { currentUser, switchUser, demoUsers, isAdmin, setIsAuthModalOpen, logout } = useAuth();
+  const { currentUser, isAdmin, setIsAuthModalOpen, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -142,78 +142,45 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenArchitecture }) => {
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
-              {/* Dropdown Menu */}
-              {isUserDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-fadeIn">
-                  <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                      Switch Demo Profile
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Test Student report flow vs Admin emergency broadcast
-                    </p>
-                  </div>
-
-                  <div className="py-1">
-                    {demoUsers.map((user) => (
-                      <button
-                        key={user.id}
-                        onClick={() => {
-                          switchUser(user);
-                          setIsUserDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-left text-xs hover:bg-slate-50 transition ${
-                          currentUser?.id === user.id ? 'bg-blue-50/70 font-semibold' : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-7 h-7 rounded-lg object-cover"
-                          />
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-slate-900">{user.name}</span>
-                              <span className={`text-[9px] font-bold uppercase px-1 rounded ${
-                                user.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'
-                              }`}>
-                                {user.role}
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-slate-400 block">{user.email}</span>
-                          </div>
-                        </div>
-                        {currentUser?.id === user.id && (
-                          <Check className="w-4 h-4 text-blue-600 shrink-0" />
+                  {/* Dropdown Menu */}
+                  {isUserDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-3 z-50 animate-fadeIn">
+                      <div className="px-4 pb-3 border-b border-slate-100 dark:border-slate-800 space-y-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          {currentUser?.name}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                          {currentUser?.email}
+                        </p>
+                        {currentUser?.department && (
+                          <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium truncate pt-0.5">
+                            {currentUser.department}
+                          </p>
                         )}
-                      </button>
-                    ))}
-                  </div>
+                        <div className="pt-1">
+                          <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                            isAdmin ? 'bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-300' : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300'
+                          }`}>
+                            {isAdmin ? 'Campus Admin / Security' : 'Verified Student'}
+                          </span>
+                        </div>
+                      </div>
 
-                  <div className="px-4 pt-2 border-t border-slate-100 flex flex-col gap-1.5">
-                    <button
-                      onClick={() => {
-                        setIsAuthModalOpen(true);
-                        setIsUserDropdownOpen(false);
-                      }}
-                      className="w-full text-center py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs transition"
-                    >
-                      Sign In with Another Account
-                    </button>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setIsUserDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs transition"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>Log Out</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+                      <div className="px-3 pt-2">
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsUserDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/70 text-red-600 dark:text-red-400 font-semibold text-xs transition"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
             </div>
 
             {/* Mobile / Tablet Menu Toggle */}

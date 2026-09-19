@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  ShieldAlert, 
   ShieldCheck, 
-  UserCheck, 
   Lock, 
   Mail, 
   Key, 
@@ -13,20 +11,12 @@ import {
   EyeOff, 
   CheckCircle2, 
   AlertCircle,
-  Database,
-  Radio,
-  FileImage,
-  Zap,
-  Server,
-  RefreshCw,
-  HelpCircle,
-  ChevronDown,
-  ChevronUp,
-  RotateCcw,
+  GraduationCap,
+  Building,
   Sun,
   Moon
 } from 'lucide-react';
-import { useAuth, DEFAULT_DEMO_USERS } from '../context/AuthContext';
+import { useAuth, VIT_CHENNAI_SCHOOLS } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 export const LoginPage = ({ onOpenArchitecture }) => {
@@ -36,10 +26,8 @@ export const LoginPage = ({ onOpenArchitecture }) => {
     signUpWithCognito, 
     confirmSignUp, 
     resendConfirmationCode,
-    autoConfirmUser,
     forgotPassword,
-    confirmForgotPassword,
-    switchUser
+    confirmForgotPassword
   } = useAuth();
 
   // Mode: 'signin' | 'signup' | 'verify' | 'forgot' | 'reset_confirm'
@@ -50,8 +38,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [department, setDepartment] = useState('Computer Science');
-  const [role, setRole] = useState('student');
+  const [department, setDepartment] = useState(VIT_CHENNAI_SCHOOLS[0]);
   const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   
@@ -59,34 +46,11 @@ export const LoginPage = ({ onOpenArchitecture }) => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [showDemoHelper, setShowDemoHelper] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const resetMessages = () => {
     setErrorMsg('');
     setSuccessMsg('');
-  };
-
-  const handleInstantAutoConfirm = async () => {
-    if (!email) {
-      setErrorMsg('Please enter your account email.');
-      return;
-    }
-    resetMessages();
-    setLoading(true);
-
-    try {
-      const res = await autoConfirmUser(email);
-      setSuccessMsg(res.message || 'Account successfully activated in Amazon Cognito! Redirecting to Sign In...');
-      setTimeout(() => {
-        setMode('signin');
-        setVerificationCode('');
-      }, 1500);
-    } catch (err) {
-      setErrorMsg(err.message || 'Auto-activation failed.');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleSignIn = async (e) => {
@@ -96,17 +60,16 @@ export const LoginPage = ({ onOpenArchitecture }) => {
 
     try {
       await signInWithCognito(email, password);
-      // AuthContext sets state and redirects
     } catch (err) {
       if (err.code === 'UserNotConfirmedException') {
         setErrorMsg(err.message);
         setMode('verify');
       } else if (err.code === 'NotAuthorizedException') {
-        setErrorMsg('Incorrect email or password. Please check your credentials.');
+        setErrorMsg('Incorrect email or password. Please verify your credentials.');
       } else if (err.code === 'UserNotFoundException') {
         setErrorMsg('No campus account found with this email address.');
       } else {
-        setErrorMsg(err.message || 'Authentication failed. Please verify credentials.');
+        setErrorMsg(err.message || 'Authentication failed. Please check your credentials.');
       }
     } finally {
       setLoading(false);
@@ -116,6 +79,19 @@ export const LoginPage = ({ onOpenArchitecture }) => {
   const handleSignUp = async (e) => {
     e.preventDefault();
     resetMessages();
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Client-side domain restriction to @vitstudent.ac.in
+    if (!cleanEmail.endsWith('@vitstudent.ac.in')) {
+      setErrorMsg('Registration is strictly restricted to VIT students with a valid @vitstudent.ac.in email address.');
+      return;
+    }
+
+    if (!department) {
+      setErrorMsg('Please select your VIT Chennai school.');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setErrorMsg('Passwords do not match. Please re-enter.');
@@ -131,27 +107,26 @@ export const LoginPage = ({ onOpenArchitecture }) => {
 
     try {
       const res = await signUpWithCognito({
-        email,
+        email: cleanEmail,
         password,
         name,
-        department,
-        role
+        department
       });
 
       if (res.userConfirmed) {
         setSuccessMsg('Account registered and confirmed! Signing you in...');
-        setTimeout(() => signInWithCognito(email, password), 1000);
+        setTimeout(() => signInWithCognito(cleanEmail, password), 1000);
       } else {
-        setSuccessMsg(`Registration initiated! Enter confirmation code or click "Instant Verify" below.`);
+        setSuccessMsg(`Registration initiated! A 6-digit confirmation code has been dispatched to ${cleanEmail}.`);
         setMode('verify');
       }
     } catch (err) {
       if (err.code === 'UsernameExistsException') {
         setErrorMsg('An account with this email already exists. Please Sign In.');
       } else if (err.code === 'InvalidPasswordException') {
-        setErrorMsg('Password does not meet complexity requirements (minimum 8 characters with upper, lower, numbers & symbols).');
+        setErrorMsg('Password does not meet complexity requirements (minimum 8 characters with uppercase, lowercase, numbers & symbols).');
       } else {
-        setErrorMsg(err.message || 'Registration failed.');
+        setErrorMsg(err.message || 'Registration failed. Please verify your details.');
       }
     } finally {
       setLoading(false);
@@ -165,16 +140,16 @@ export const LoginPage = ({ onOpenArchitecture }) => {
 
     try {
       await confirmSignUp(email, verificationCode);
-      setSuccessMsg('Email verified successfully! You can now sign in.');
+      setSuccessMsg('Email verified successfully! You can now sign in with your VIT credentials.');
       setTimeout(() => {
         setMode('signin');
         setVerificationCode('');
       }, 1500);
     } catch (err) {
       if (err.code === 'CodeMismatchException') {
-        setErrorMsg('Invalid confirmation code. Please check the 6-digit code in your email or click "Instant Activate" below.');
+        setErrorMsg('Invalid confirmation code. Please check the 6-digit code sent to your email.');
       } else if (err.code === 'ExpiredCodeException') {
-        setErrorMsg('Confirmation code has expired. Please click "Resend Code" or use "Instant Activate".');
+        setErrorMsg('Confirmation code has expired. Please click "Resend Code" below.');
       } else {
         setErrorMsg(err.message || 'Verification failed. Please check the code.');
       }
@@ -183,30 +158,9 @@ export const LoginPage = ({ onOpenArchitecture }) => {
     }
   };
 
-  const handleDirectAdminActivate = async () => {
-    if (!email) {
-      setErrorMsg('Please enter your account email first.');
-      return;
-    }
-    resetMessages();
-    setLoading(true);
-    try {
-      const res = await autoConfirmUser(email);
-      setSuccessMsg(res.message || 'Account successfully activated via AWS Admin API! Redirecting to Sign In...');
-      setTimeout(() => {
-        setMode('signin');
-        setVerificationCode('');
-      }, 1500);
-    } catch (err) {
-      setErrorMsg(err.message || 'Direct activation failed. Check backend connection.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleResendCode = async () => {
     if (!email) {
-      setErrorMsg('Please provide your campus email address.');
+      setErrorMsg('Please provide your student email address.');
       return;
     }
     resetMessages();
@@ -239,7 +193,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
 
     try {
       await forgotPassword(email);
-      setSuccessMsg(`Password reset code sent to ${email}. Check your inbox.`);
+      setSuccessMsg(`Password reset code sent to ${email}. Please check your inbox.`);
       setMode('reset_confirm');
     } catch (err) {
       setErrorMsg(err.message || 'Failed to initiate password recovery.');
@@ -272,16 +226,6 @@ export const LoginPage = ({ onOpenArchitecture }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAutofillDemo = (user) => {
-    setEmail(user.email);
-    setPassword(user.password || 'StudentPass123!');
-    setName(user.name);
-    setDepartment(user.department);
-    setRole(user.role);
-    setMode('signin');
-    resetMessages();
   };
 
   return (
@@ -336,19 +280,19 @@ export const LoginPage = ({ onOpenArchitecture }) => {
           <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary-fixed text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Amazon Cognito Secure Authentication</span>
+              <span>VIT Chennai Student Authentication</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-headline font-black tracking-tight text-white">
               {mode === 'signin' && 'Welcome to FindIt VITC'}
-              {mode === 'signup' && 'Create Campus Account'}
-              {mode === 'verify' && 'Verify Your Email'}
+              {mode === 'signup' && 'Student Registration'}
+              {mode === 'verify' && 'Verify Student Email'}
               {mode === 'forgot' && 'Reset Your Password'}
               {mode === 'reset_confirm' && 'Set New Password'}
             </h1>
             <p className="text-xs text-slate-400">
-              {mode === 'signin' && 'Sign in to file reports, track items, or broadcast emergency alerts'}
-              {mode === 'signup' && 'Register your verified student or staff identity with AWS Cognito'}
-              {mode === 'verify' && 'Enter the 6-digit confirmation code sent to your campus email'}
+              {mode === 'signin' && 'Sign in with your verified @vitstudent.ac.in account'}
+              {mode === 'signup' && 'Exclusive access for VIT Chennai students (@vitstudent.ac.in)'}
+              {mode === 'verify' && 'Enter the 6-digit confirmation code sent to your student email'}
               {mode === 'forgot' && 'We will dispatch a secure verification code to your email'}
               {mode === 'reset_confirm' && 'Enter the reset code and your new password'}
             </p>
@@ -366,7 +310,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
                     mode === 'signin' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Sign In
+                  Student Sign In
                 </button>
                 <button
                   type="button"
@@ -401,7 +345,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Campus Email Address *
+                    VIT Student Email Address *
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
@@ -410,7 +354,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="student@campus.edu"
+                      placeholder="your.name2023@vitstudent.ac.in"
                       className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs focus:border-blue-500 focus:outline-none transition"
                     />
                   </div>
@@ -469,53 +413,47 @@ export const LoginPage = ({ onOpenArchitecture }) => {
               </form>
             )}
 
-            {/* 2. SIGN UP FORM */}
+            {/* 2. SIGN UP FORM (STUDENT ONLY - DOMAIN RESTRICTED) */}
             {mode === 'signup' && (
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Full Name *
+                    Full Student Name *
                   </label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Alex Rivera"
+                    placeholder="e.g. Rahul Sharma"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs focus:border-blue-500 focus:outline-none transition"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Campus Department / Major
+                    VIT Chennai School / Department *
                   </label>
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="e.g. Computer Science & Engineering"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs focus:border-blue-500 focus:outline-none transition"
-                  />
+                  <div className="relative">
+                    <Building className="w-4 h-4 text-slate-500 absolute left-3 top-2.5 pointer-events-none" />
+                    <select
+                      required
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:border-blue-500 focus:outline-none transition"
+                    >
+                      {VIT_CHENNAI_SCHOOLS.map((school) => (
+                        <option key={school} value={school} className="bg-slate-900 text-white">
+                          {school}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Account Role
-                  </label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:border-blue-500 focus:outline-none transition"
-                  >
-                    <option value="student">Student (Campus Access)</option>
-                    <option value="admin">Campus Security / Admin (Emergency Dispatch)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Campus Email Address *
+                    VIT Student Email Address (@vitstudent.ac.in) *
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
@@ -524,10 +462,13 @@ export const LoginPage = ({ onOpenArchitecture }) => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="alex.student@campus.edu"
+                      placeholder="your.name2023@vitstudent.ac.in"
                       className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs focus:border-blue-500 focus:outline-none transition"
                     />
                   </div>
+                  <p className="text-[10px] text-blue-400 mt-1">
+                    Registration is strictly restricted to valid @vitstudent.ac.in student addresses.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -561,7 +502,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
                 </div>
 
                 <p className="text-[10px] text-slate-400">
-                  Password requires $\ge$ 8 chars with upper, lower, numbers & symbols.
+                  Password requires $\ge$ 8 chars with uppercase, lowercase, numbers & symbols.
                 </p>
 
                 <button
@@ -572,11 +513,11 @@ export const LoginPage = ({ onOpenArchitecture }) => {
                   {loading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Creating Cognito Account...</span>
+                      <span>Registering Student Account...</span>
                     </>
                   ) : (
                     <>
-                      <span>Register Account</span>
+                      <span>Register Student Account</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -625,31 +566,10 @@ export const LoginPage = ({ onOpenArchitecture }) => {
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Confirm Code & Activate</span>
+                      <span>Confirm Code &amp; Activate</span>
                     </>
                   )}
                 </button>
-
-                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-left space-y-2">
-                  <div className="flex items-start gap-2">
-                    <Zap className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-[11px] font-bold text-amber-300">Didn't receive an email code?</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
-                        AWS Cognito email delivery may be delayed or filtered by spam filters. Click below to activate your account directly via AWS Admin API without waiting.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={loading || !email}
-                    onClick={handleDirectAdminActivate}
-                    className="w-full py-2 px-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 hover:text-amber-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
-                  >
-                    <Zap className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>⚡ 1-Click Instant Activate Account</span>
-                  </button>
-                </div>
 
                 <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
                   <button
@@ -676,14 +596,14 @@ export const LoginPage = ({ onOpenArchitecture }) => {
               <form onSubmit={handleForgotPassword} className="space-y-4 animate-fadeIn">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Your Registered Campus Email *
+                    Your Registered VIT Student Email *
                   </label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student@campus.edu"
+                    placeholder="your.name2023@vitstudent.ac.in"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs focus:border-blue-500 focus:outline-none transition"
                   />
                 </div>
@@ -745,7 +665,7 @@ export const LoginPage = ({ onOpenArchitecture }) => {
                   disabled={loading}
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wide transition flex items-center justify-center gap-2"
                 >
-                  {loading ? <span>Updating Password...</span> : <span>Set New Password & Sign In</span>}
+                  {loading ? <span>Updating Password...</span> : <span>Set New Password &amp; Sign In</span>}
                 </button>
 
                 <div className="text-center pt-2">
@@ -760,52 +680,6 @@ export const LoginPage = ({ onOpenArchitecture }) => {
               </form>
             )}
           </div>
-
-          {/* Discreet Demo Helper Accordion for Evaluators */}
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4">
-            <button
-              type="button"
-              onClick={() => setShowDemoHelper(!showDemoHelper)}
-              className="w-full flex items-center justify-between text-xs text-slate-400 hover:text-slate-200 transition"
-            >
-              <div className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold">Demo Test Profiles / 1-Click Autofill</span>
-              </div>
-              {showDemoHelper ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {showDemoHelper && (
-              <div className="mt-3 pt-3 border-t border-slate-800 space-y-2 animate-fadeIn">
-                <p className="text-[11px] text-slate-500">
-                  Select an authorized profile to autofill the Cognito login form with valid demo credentials:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                  {DEFAULT_DEMO_USERS.map((user) => {
-                    const isAdmin = user.role === 'admin' || (user.groups || []).includes('Admin');
-                    return (
-                      <button
-                        key={user.id}
-                        type="button"
-                        onClick={() => handleAutofillDemo(user)}
-                        className={`p-2 rounded-xl text-left border transition flex items-center gap-2 group ${
-                          isAdmin 
-                            ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/60' 
-                            : 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/60'
-                        }`}
-                      >
-                        <img src={user.avatar} alt={user.name} className="w-7 h-7 rounded-lg object-cover" />
-                        <div className="min-w-0 flex-1">
-                          <span className="text-[11px] font-bold text-white block truncate">{user.name.split(' ')[0]}</span>
-                          <span className="text-[9px] text-slate-400 block truncate">{user.role}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </main>
 
@@ -813,14 +687,13 @@ export const LoginPage = ({ onOpenArchitecture }) => {
       <footer className="border-t border-slate-800 bg-slate-950 py-5 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div>
-            <span className="font-bold text-slate-400">FindIt VITC</span> • Amazon Cognito Production Authentication
+            <span className="font-bold text-slate-400">FindIt VITC</span> • Vellore Institute of Technology, Chennai
           </div>
           <div className="flex items-center gap-2">
-            <span>Serverless AWS Stack: Cognito • Rekognition • DynamoDB • S3 • SNS • Lambda</span>
+            <span>Production Authentication via Amazon Cognito User Pool</span>
           </div>
         </div>
       </footer>
     </div>
   );
 };
-

@@ -378,38 +378,9 @@ export const api = {
     }
   },
 
-  // Demo Auth
+  // Demo Auth (Deprecated/Removed for Production)
   async getDemoUsers() {
-    try {
-      return await request(`${PREFIX}/auth/demo-users`);
-    } catch {
-      return [
-        {
-          id: "usr-alex-001",
-          name: "Alex Rivera",
-          email: "alex.student@campus.edu",
-          role: "student",
-          department: "Computer Science & Engineering",
-          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-        },
-        {
-          id: "usr-sarah-003",
-          name: "Sarah Chen",
-          email: "sarah.chen@campus.edu",
-          role: "student",
-          department: "Biological Sciences",
-          avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
-        },
-        {
-          id: "usr-admin-999",
-          name: "Officer J. Martinez",
-          email: "security.officer@campus.edu",
-          role: "admin",
-          department: "Campus Police & Public Safety",
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-        }
-      ];
-    }
+    return [];
   },
 
   async autoConfirmUser(email) {

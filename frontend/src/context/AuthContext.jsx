@@ -6,37 +6,18 @@ const COGNITO_REGION = import.meta.env.VITE_AWS_REGION || 'ap-south-1';
 const COGNITO_CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID || '5068gn9iktlj9670vdntdn125m';
 const COGNITO_ENDPOINT = `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`;
 
-export const DEFAULT_DEMO_USERS = [
-  {
-    id: 'usr-alex-001',
-    name: 'Alex Rivera',
-    email: 'alex.student@campus.edu',
-    password: 'StudentPass123!',
-    role: 'student',
-    groups: ['Student'],
-    department: 'Computer Science & Engineering',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-  },
-  {
-    id: 'usr-sarah-003',
-    name: 'Sarah Chen',
-    email: 'sarah.chen@campus.edu',
-    password: 'StudentPass123!',
-    role: 'student',
-    groups: ['Student'],
-    department: 'Biological Sciences',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
-  },
-  {
-    id: 'usr-admin-999',
-    name: 'Officer J. Martinez',
-    email: 'security.officer@campus.edu',
-    password: 'AdminSecure999!',
-    role: 'admin',
-    groups: ['Admin', 'Security'],
-    department: 'Campus Police & Public Safety',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
-  }
+export const VIT_CHENNAI_SCHOOLS = [
+  'School of Computer Science and Engineering (SCOPE)',
+  'School of Electronics Engineering (SENSE)',
+  'School of Electrical Engineering (SELECT)',
+  'School of Mechanical Engineering (SMEC)',
+  'School of Civil Engineering (SCE)',
+  'School of Bio Sciences and Technology (SBST)',
+  'VIT Business School (VITBS)',
+  'VIT School of Law (VITSOL)',
+  'School of Social Sciences and Languages (SSL)',
+  'VIT School of Media Arts and Technology (VSMART)',
+  'VIT Fashion Institute of Technology (VFIT)'
 ];
 
 function decodeJwt(token) {
@@ -75,14 +56,10 @@ async function callCognito(target, payload) {
   return data;
 }
 
-// Clean up legacy localStorage keys on module execution so old sessions don't bypass login
+// Clean up any legacy or demo localStorage keys on module execution
 try {
   localStorage.removeItem('campusfind_user');
-  localStorage.removeItem('campusfind_id_token');
-  localStorage.removeItem('campusfind_access_token');
-  localStorage.removeItem('campusfind_refresh_token');
   localStorage.removeItem('findit_user');
-  localStorage.removeItem('findit_id_token');
 } catch (e) {
   /* ignore */
 }
@@ -99,7 +76,6 @@ export const AuthProvider = ({ children }) => {
   const [idToken, setIdToken] = useState(() => sessionStorage.getItem('findit_session_id_token') || '');
   const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem('findit_session_access_token') || '');
   const [refreshToken, setRefreshToken] = useState(() => sessionStorage.getItem('findit_session_refresh_token') || '');
-  const [demoUsers, setDemoUsers] = useState(DEFAULT_DEMO_USERS);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authError, setAuthError] = useState('');
 
@@ -112,14 +88,29 @@ export const AuthProvider = ({ children }) => {
   }, [currentUser]);
 
   useEffect(() => {
-    if (idToken) sessionStorage.setItem('findit_session_id_token', idToken);
-    else sessionStorage.removeItem('findit_session_id_token');
+    if (idToken) {
+      sessionStorage.setItem('findit_session_id_token', idToken);
+      localStorage.setItem('campusfind_id_token', idToken);
+    } else {
+      sessionStorage.removeItem('findit_session_id_token');
+      localStorage.removeItem('campusfind_id_token');
+    }
 
-    if (accessToken) sessionStorage.setItem('findit_session_access_token', accessToken);
-    else sessionStorage.removeItem('findit_session_access_token');
+    if (accessToken) {
+      sessionStorage.setItem('findit_session_access_token', accessToken);
+      localStorage.setItem('campusfind_access_token', accessToken);
+    } else {
+      sessionStorage.removeItem('findit_session_access_token');
+      localStorage.removeItem('campusfind_access_token');
+    }
 
-    if (refreshToken) sessionStorage.setItem('findit_session_refresh_token', refreshToken);
-    else sessionStorage.removeItem('findit_session_refresh_token');
+    if (refreshToken) {
+      sessionStorage.setItem('findit_session_refresh_token', refreshToken);
+      localStorage.setItem('campusfind_refresh_token', refreshToken);
+    } else {
+      sessionStorage.removeItem('findit_session_refresh_token');
+      localStorage.removeItem('campusfind_refresh_token');
+    }
   }, [idToken, accessToken, refreshToken]);
 
   // Check token expiration periodically or on mount
@@ -134,13 +125,6 @@ export const AuthProvider = ({ children }) => {
       }
     }
   }, [idToken]);
-
-  const switchUser = (user) => {
-    setCurrentUser(user);
-    const simToken = `demo-${user.role}-${user.id}`;
-    setIdToken(simToken);
-    sessionStorage.setItem('findit_session_id_token', simToken);
-  };
 
   /**
    * Amazon Cognito Sign In with USER_PASSWORD_AUTH
@@ -172,7 +156,7 @@ export const AuthProvider = ({ children }) => {
         email: parsedClaims.email || cleanEmail,
         role: isAdminRole ? 'admin' : 'student',
         groups: groups,
-        department: parsedClaims['custom:department'] || (isAdminRole ? 'Campus Police' : 'Student Body'),
+        department: parsedClaims['custom:department'] || (isAdminRole ? 'Campus Safety & Administration' : 'School of Computer Science and Engineering (SCOPE)'),
         avatar: isAdminRole
           ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
           : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
@@ -185,7 +169,7 @@ export const AuthProvider = ({ children }) => {
 
       return authenticatedUser;
     } catch (err) {
-      console.warn('Cognito login response:', err.message);
+      console.warn('Cognito authentication note:', err.message);
 
       // If user not confirmed yet, let caller handle confirmation code entry
       if (err.code === 'UserNotConfirmedException' || err.message.includes('User is not confirmed')) {
@@ -195,22 +179,24 @@ export const AuthProvider = ({ children }) => {
         throw confirmErr;
       }
 
-      // Check preset demo user fallback if offline
-      const existing = demoUsers.find(u => u.email.toLowerCase() === cleanEmail);
-      if (existing && (!password || existing.password === password)) {
-        switchUser(existing);
-        return existing;
-      }
       throw err;
     }
   };
 
   /**
-   * Amazon Cognito Sign Up
+   * Amazon Cognito Student-Only Sign Up
+   * Strictly enforces @vitstudent.ac.in and captures VIT Chennai School
    */
-  const signUpWithCognito = async ({ email, password, name, department = 'General Studies', role = 'student' }) => {
+  const signUpWithCognito = async ({ email, password, name, department }) => {
     setAuthError('');
     const cleanEmail = email.trim().toLowerCase();
+
+    // Client-side domain enforcement
+    if (!cleanEmail.endsWith('@vitstudent.ac.in')) {
+      throw new Error('Registration is strictly restricted to VIT students with a valid @vitstudent.ac.in email address.');
+    }
+
+    const selectedDept = department || VIT_CHENNAI_SCHOOLS[0];
 
     const data = await callCognito('SignUp', {
       ClientId: COGNITO_CLIENT_ID,
@@ -218,7 +204,8 @@ export const AuthProvider = ({ children }) => {
       Password: password,
       UserAttributes: [
         { Name: 'email', Value: cleanEmail },
-        { Name: 'name', Value: name.trim() || cleanEmail.split('@')[0] }
+        { Name: 'name', Value: (name || '').trim() || cleanEmail.split('@')[0] },
+        { Name: 'custom:department', Value: selectedDept }
       ]
     });
 
@@ -305,48 +292,9 @@ export const AuthProvider = ({ children }) => {
         return data.AuthenticationResult;
       }
     } catch (err) {
-      console.warn('Silent token refresh failed:', err);
+      console.warn('Silent token refresh note:', err);
     }
     return null;
-  };
-
-  const autoConfirmUser = async (email) => {
-    const cleanEmail = email.trim().toLowerCase();
-    try {
-      const res = await fetch('http://localhost:8000/api/auth/confirm-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail })
-      });
-      return await res.json();
-    } catch (err) {
-      console.warn('Auto confirm error:', err);
-      return { message: `Account '${cleanEmail}' verified.` };
-    }
-  };
-
-  const loginWithEmail = (email, role = 'student') => {
-
-    const cleanEmail = email.trim().toLowerCase();
-    const existing = demoUsers.find(u => u.email.toLowerCase() === cleanEmail);
-    if (existing) {
-      switchUser(existing);
-      return existing;
-    }
-
-    const newUser = {
-      id: `usr-${Date.now().toString().slice(-4)}`,
-      name: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      email: cleanEmail,
-      role: role,
-      groups: role === 'admin' ? ['Admin'] : ['Student'],
-      department: 'Campus Community',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
-    };
-
-    setDemoUsers(prev => [...prev, newUser]);
-    switchUser(newUser);
-    return newUser;
   };
 
   const logout = () => {
@@ -376,19 +324,14 @@ export const AuthProvider = ({ children }) => {
         idToken,
         accessToken,
         refreshToken,
-        demoUsers,
         authError,
-        switchUser,
         signInWithCognito,
         signUpWithCognito,
         confirmSignUp,
         resendConfirmationCode,
-        autoConfirmUser,
         forgotPassword,
         confirmForgotPassword,
-
         refreshSession,
-        loginWithEmail,
         logout,
         isAuthModalOpen,
         setIsAuthModalOpen,
@@ -406,4 +349,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

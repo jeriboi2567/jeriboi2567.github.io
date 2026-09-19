@@ -190,8 +190,8 @@ export const clientStore = {
       detected_labels: itemData.detected_labels || [],
       status: 'open',
       contactInfo: itemData.contactInfo || itemData.userEmail || 'Campus Security Lost & Found',
-      userId: itemData.userId || 'usr-demo',
-      userEmail: itemData.userEmail || 'student@campus.edu',
+      userId: itemData.userId || 'usr-anonymous',
+      userEmail: itemData.userEmail || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

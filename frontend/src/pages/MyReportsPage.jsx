@@ -45,20 +45,15 @@ export const MyReportsPage = ({ initialSelectedItem = null, onNavigateReport }) 
   const loadMyReports = async () => {
     setLoading(true);
     try {
-      // If user has specific ID, fetch their reports; otherwise fetch all to let user browse
+      // If user has specific ID, fetch their reports
       const data = await api.getItems({ userId: currentUser?.id });
       let items = data.items || [];
       
-      // If user has no reports yet, fetch items matching their email or show sample user reports
-      if (items.length === 0) {
-        const allData = await api.getItems();
-        items = (allData.items || []).filter(
-          i => i.userEmail === currentUser?.email || i.userId === currentUser?.id
+      // Also filter by email if items wasn't filtered by userId on backend
+      if (currentUser?.email) {
+        items = items.filter(
+          i => i.userEmail === currentUser?.email || i.userId === currentUser?.id || i.userId === currentUser?.email
         );
-        if (items.length === 0 && allData.items && allData.items.length > 0) {
-          // Provide first 2 items so demo always looks active
-          items = allData.items.slice(0, 2);
-        }
       }
 
       setMyItems(items);

@@ -257,9 +257,10 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
     const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{3,6}$/;
     const isValidFormat = emailRegex.test(contactClean) || phoneRegex.test(contactClean.replace(/[\s\-\(\)\.]/g, ''));
     if (isLost && !isValidFormat) {
-      setError('Please provide a valid contact email address (e.g. user@campus.edu) or phone number for the lost item.');
+      setError('Please provide a valid contact email address (e.g. your.name2023@vitstudent.ac.in) or phone number for the lost item.');
       return;
     }
+
 
     setSubmitting(true);
 
@@ -658,7 +659,7 @@ export const ReportItemPage = ({ defaultType = 'lost', onReportSuccess }) => {
               required
               value={contactInfo}
               onChange={(e) => setContactInfo(e.target.value)}
-              placeholder={isLost ? "alex.student@campus.edu or 555-0192" : "Turned in at Library Front Desk Lost & Found bin"}
+              placeholder={isLost ? "your.name2023@vitstudent.ac.in or 9876543210" : "Turned in at Library Front Desk Lost & Found bin"}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs sm:text-sm outline-none transition"
             />
           </div>
